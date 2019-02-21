@@ -11,18 +11,17 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     public Move chooseMove(Color[][] board, Color me) {
         long startTime = System.currentTimeMillis();
-        Move bestMove = null;
-
+        Move bestMove = new Move(1,1);
+        // If I don't have a best move so far then take a random legal move
+        List<Move> legalMoves = getLegalMoves(board);
+        bestMove = legalMoves.get((int) Math.random() * legalMoves.size());
         while (System.currentTimeMillis() < startTime + 9800){
 
         }
         System.out.println("Failed to find move in time, choosing best so far");
         if (bestMove != null)
             return bestMove;
-        // If I don't have a best move so far then take a random legal move
-        List<Move> legalMoves = getLegalMoves(board);
-        int index = (int) Math.random() * legalMoves.size();
-        bestMove = legalMoves.get(index);
+
         while (true) {
             int row = (int) (Math.random() * 8);	// values are from 0 to 7
             int col = (int) (Math.random() * 8);
