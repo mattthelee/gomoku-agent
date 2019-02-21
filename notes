@@ -1,0 +1,19 @@
+can use a methaurtistic to decide which actions to chosoe first when we're searching the minimax tree. Some will do better for alphabeta search. 
+
+demonstrator recommends using IDS
+
+the alphabeta worked better from right to left than left to right. This is because i had the larger value for the max player at the root, which meant it was able to propagate down and eliminate more. 
+
+With one ids iteration i should be able to know that I'm going to prune from right to left. we need to use a heuristic to allow the IDS to get choose the right one. You then prune from right to left if the first rigth hand branch has a higher heuristic than the left. and then for that one you do the reverse (because it's min players turn
+
+he recommends getting the heurisitc right as the key way to do it. he also recommends imagining a small grid to test out the heuristics)
+
+he also asks us to consider how we store the data for the tree as goig between rows can take longer than going between columsn within a row apparently. 
+
+ IDS is not a good idea when you have a sparse grid as there are a lot of possibilities, but as you start to have an area of interest you might want to do IDS around the moves that are likely to be interresting
+
+need to comment code if the demonstrator is marking it, no worries if simon is as he will not look at the code itself
+
+example minimax code for is available on qmplus and also have taken a photo of it
+
+Could potentialyl pre-train the agent and use its learnt state values to provide a heuristic, or even to define the moves of the game, especially the early game where the branching factor is huge. He also said we could hardcode the first move. 
