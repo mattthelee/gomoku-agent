@@ -35,17 +35,22 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         Move bestMove = new Move(1, 1);
         try {
             long startTime = System.currentTimeMillis();
+            //System.out.println("pre minimax " + board[bestMove.row][bestMove.col]);
 
             // If I don't have a best move so far then take a random legal move
             BoardAnalysis bd = boardAnalyser(board);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
+            bestMove = minimaxDecision(board,me);
+            //bestMove = bd.legalMoves.get(0);
+            Color[][] cloneBoard = deepCloneBoard(board);
 
-            bestMove = bd.legalMoves.get(0);
-            //System.out.println("Failed to find move in time, choosing best so far");
-            if (doesMoveWin(board, bestMove,me))
-                System.out.println("My win predictor thinks this will win");
+            cloneBoard[bestMove.row][bestMove.col] = me;
+
+            BoardAnalysis bd2= boardAnalyser(cloneBoard);
+            if (bd2.winner == me)
+                System.out.println("My win predictor thinks this will win " + bd2.winner);
             return bestMove;
 
         } catch (Exception e) {
@@ -55,32 +60,23 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
-    private List<Move>  getLegalMoves(Color[][] board, Color me){ // Method returns all current legal moves
-        List<Move> legalMoves = new ArrayList<>();
-        Move testMove;
-        for (int col = 0; col < 8; col++ ){
-            for (int row = 0; row < 8; row++){
-                testMove = new Move(row, col);
-                if (board[row][col] == null) {
-                    if (doesMoveWin(board,testMove, me)){
-                        legalMoves.add(0,testMove);
-                    } else {
-                        legalMoves.add(testMove);
-                    }
-                }
+    private Color[][] deepCloneBoard(Color[][] board){
+        Color[][] cloneBoard = new Color[8][8];
+        for (int col = 0; col < 8; col++ ) {
+            for (int row = 0; row < 8; row++) {
+                cloneBoard[row][col] = board[row][col];
+
             }
         }
-        return legalMoves;
+        return cloneBoard;
     }
 
     //private Move chooseMove(Color[][] board, Color me, List<Move>  legalMoves, long startTime){ }
 
     boolean doesMoveWin(Color[][] board, Move testMove, Color me){
         // Checks if given move will win on given board
-        int row = testMove.row;
-        int col = testMove.col;
         Color[][] cloneBoard = board.clone();
-        cloneBoard[row][col] = me;
+        cloneBoard[testMove.row][testMove.col] = me;
         BoardAnalysis bd= boardAnalyser(cloneBoard);
         if (bd.winner == me) {
             // If that move wins
@@ -95,6 +91,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int[] blackRuns = new int[96];
         List<Move> legalMoves = new ArrayList<>();
         //System.out.println("*** DEBUG *** ");
+        // Looping through each position is expensive so try to do only once
         for (int col = 0; col < 8; col++ ) {
             for (int row = 0; row < 8; row++) {
                 // For each square
@@ -111,15 +108,15 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                         // For every white square
                         //System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
                         if (++whiteRuns[this.allRuns[squareID][runNo]] >= 5) {
-                            System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
-                            System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
+                            //System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
+                            //System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
                             return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
                         }
                     }
                     if (token == Color.black) {
                         // For every black square
                         if (++blackRuns[this.allRuns[squareID][runNo]] >= 5) {
-                            System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
+                            //System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
                             return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns);
                         }
                     }
@@ -132,34 +129,52 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
 
 
-    private int maxValue(Color[][] board, Color maxCol, Color minCol){
+    private int maxValue(Color[][] board, Color maxColor, Color minColor){
 
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
-            return -100000000; // stand in for infinity
+            return -1; // stand in for infinity
         }
         List<Integer> values = new ArrayList<Integer>();;
         for (Move legalMove : bd.legalMoves){
-            Color[][] cloneBoard = board.clone();
-            cloneBoard[legalMove.row][legalMove.col] = maxCol;
-            values.add(minValue(cloneBoard, maxCol, minCol));
+            Color[][] cloneBoard = deepCloneBoard(board);
+            cloneBoard[legalMove.row][legalMove.col] = maxColor;
+            values.add(minValue(cloneBoard, maxColor, minColor));
         }
         return Collections.max(values);
     }
 
-    private int minValue(Color[][] board, Color maxCol, Color minCol){
+    private int minValue(Color[][] board, Color maxColor, Color minColor){
 
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
-            return 100000000; // stand in for infinity
+            return 1; // stand in for infinity
         }
         List<Integer> values = new ArrayList<Integer>();;
         for (Move legalMove : bd.legalMoves){
-            Color[][] cloneBoard = board.clone();
-            cloneBoard[legalMove.row][legalMove.col] = minCol;
-            values.add(minValue(cloneBoard, maxCol, minCol));
+            Color[][] cloneBoard = deepCloneBoard(board);
+            cloneBoard[legalMove.row][legalMove.col] = minColor;
+            values.add(minValue(cloneBoard, maxColor, minColor));
         }
         return Collections.min(values);
+    }
+
+    private Move minimaxDecision(Color[][] board, Color me){
+        BoardAnalysis bd = boardAnalyser(board);
+        Move bestMove = bd.legalMoves.get(0);
+        int bestVal = -2;
+        Color minColor = (me == Color.white) ? Color.black : Color.white;
+
+        for (Move legalMove : bd.legalMoves){
+            Color[][] cloneBoard = deepCloneBoard(board);
+            cloneBoard[legalMove.row][legalMove.col] = me;
+            int minVal = minValue(board, me, minColor);
+            if ( minVal > bestVal){
+                bestVal = minVal;
+                bestMove = legalMove;
+            }
+        }
+        return  bestMove;
     }
 
     /*
