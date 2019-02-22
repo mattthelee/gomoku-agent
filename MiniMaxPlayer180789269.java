@@ -75,7 +75,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     boolean doesMoveWin(Color[][] board, Move testMove, Color me){
         // Checks if given move will win on given board
-        Color[][] cloneBoard = board.clone();
+        Color[][] cloneBoard = deepCloneBoard(board);
         cloneBoard[testMove.row][testMove.col] = me;
         BoardAnalysis bd= boardAnalyser(cloneBoard);
         if (bd.winner == me) {
