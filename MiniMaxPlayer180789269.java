@@ -23,14 +23,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             long startTime = System.currentTimeMillis();
 
             // If I don't have a best move so far then take a random legal move
-            List<Move> legalMoves = getLegalMoves(board);
+            List<Move> legalMoves = getLegalMoves(board, me);
             System.out.println("Number of Legal moves: " + legalMoves.size());
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
 
             bestMove = legalMoves.get(0);
             //System.out.println("Failed to find move in time, choosing best so far");
-            if (doesMoveWin(board, bestMove, true))
+            if (doesMoveWin(board, bestMove,me, true))
                 System.out.println("My win predictor thinks this will win");
             return bestMove;
 
@@ -41,14 +41,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
-    private List<Move>  getLegalMoves(Color[][] board){ // Method returns all current legal moves
+    private List<Move>  getLegalMoves(Color[][] board, Color me){ // Method returns all current legal moves
         List<Move> legalMoves = new ArrayList<>();
         Move testMove;
         for (int col = 0; col < 8; col++ ){
             for (int row = 0; row < 8; row++){
                 testMove = new Move(row, col);
                 if (board[row][col] == null) {
-                    if (doesMoveWin(board,testMove)){
+                    if (doesMoveWin(board,testMove, me)){
                         legalMoves.add(0,testMove);
                     } else {
                         legalMoves.add(testMove);
@@ -61,16 +61,35 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     //private Move chooseMove(Color[][] board, Color me, List<Move>  legalMoves, long startTime){ }
 
-    boolean doesMoveWin(Color[][] board, Move testMove){
-        return doesMoveWin(board,testMove, false);
+    boolean doesMoveWin(Color[][] board, Move testMove, Color me){
+        return doesMoveWin(board,testMove, me, false);
     }
 
-    boolean doesMoveWin(Color[][] board, Move testMove, boolean actualMove){
+    boolean doesMoveWin(Color[][] board, Move testMove, Color me, boolean actualMove){
         // Checks if given move will win on given board
         // This method is largely based on the code from the GomokuBoard class, written by Simon Dixon
         int row = testMove.row;
         int col = testMove.col;
         int runCount;
+        Color[][] cloneBoard = board.clone();
+        cloneBoard[row][col] = me;
+        List<Object> terminalResult = terminalTest(cloneBoard);
+        if (terminalResult.get(0) == me) {
+            // If that move wins
+            return true;
+
+
+        }
+        return false;
+    }
+
+    boolean doesMoveWinBackup(Color[][] board, Move testMove, boolean actualMove){
+        // Checks if given move will win on given board
+        // This method is largely based on the code from the GomokuBoard class, written by Simon Dixon
+        int row = testMove.row;
+        int col = testMove.col;
+        int runCount;
+
 
         for(int runNo = 0; this.allRuns[row * 8 + col][runNo] != -1; ++runNo) {
             if (actualMove) {
@@ -80,30 +99,63 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 runCount = 1 + this.myRuns[this.allRuns[row * 8 + col][runNo]];
             }
             if (runCount >= 5) {
-                System.out.println("Debug me " + row + " " + col);
                 return true;
             }
         }
         return false;
     }
-/*
-    private int[] minimax(int player, List<Move>  legalMoves, Color[][] board){
-        int winner;
-        int row = col = -1;
-        // Set player int so 1 is white and black is -1
-        if (gomokuBoard.winner == Color.white)
-            winner = 1;
-        else if (gomokuBoard.winner == Color.black)
-            winner = -1;
 
-
-        for (Move legalMove : legalMoves){
-            gomokuBoard.makeMove(legalMove, )
-            [row,col,value]  = minimax()
+    private List<Object> terminalTest(Color[][] board){
+        // Checks for end of game and returns legalmoves if not ended
+        int[] whiteRuns = new int[96];
+        int[] blackRuns = new int[96];
+        List<Move> legalMoves = new ArrayList<>();
+        System.out.println("*** DEBUG *** ");
+        for (int col = 0; col < 8; col++ ) {
+            for (int row = 0; row < 8; row++) {
+                // For each square
+                int squareID = row * 8 + col;
+                for(int runNo = 0; this.allRuns[squareID][runNo] != -1; ++runNo) {
+                    // For each possible run
+                    Color token = board[row][col];
+                    System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
+                    if (token == Color.white) {
+                        // For every white square
+                        System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
+                        if (++whiteRuns[this.allRuns[squareID][runNo]] >= 5) {
+                            System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
+                            return Arrays.asList(Color.white, null);
+                        }
+                    }
+                    if (token == Color.black) {
+                        // For every black square
+                        if (++blackRuns[this.allRuns[squareID][runNo]] >= 5) {
+                            System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
+                            return Arrays.asList(Color.black, null);
+                        }
+                    }
+                    if (token == null) {
+                        // For every empty square
+                        legalMoves.add(new Move(row, col));
+                    }
+                }
+            }
         }
+        return Arrays.asList(null,legalMoves);
+    }
+/*
+    private int maxValue(Color[][] board, List<Move>  legalMoves){
 
     }
 
+    private int[] minimax(int player, List<Move>  legalMoves, Color[][] board, Color me){
+        int winner;
+        int row = col = -1;
+
+
+    }
+
+/*
     private int convertBoardToInt(Color[][] board){
         int[][] newBoard;
         for (int col = 0; col == 7; col++){
