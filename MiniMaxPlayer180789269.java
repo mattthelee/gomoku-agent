@@ -131,11 +131,38 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     }
 
 
-/*
-    private int maxValue(Color[][] board, List<Move>  legalMoves){
 
+    private int maxValue(Color[][] board, Color maxCol, Color minCol){
+
+        BoardAnalysis bd = boardAnalyser(board);
+        if (bd.winner != null) {
+            return -100000000; // stand in for infinity
+        }
+        List<Integer> values = new ArrayList<Integer>();;
+        for (Move legalMove : bd.legalMoves){
+            Color[][] cloneBoard = board.clone();
+            cloneBoard[legalMove.row][legalMove.col] = maxCol;
+            values.add(minValue(cloneBoard, maxCol, minCol));
+        }
+        return Collections.max(values);
     }
 
+    private int minValue(Color[][] board, Color maxCol, Color minCol){
+
+        BoardAnalysis bd = boardAnalyser(board);
+        if (bd.winner != null) {
+            return 100000000; // stand in for infinity
+        }
+        List<Integer> values = new ArrayList<Integer>();;
+        for (Move legalMove : bd.legalMoves){
+            Color[][] cloneBoard = board.clone();
+            cloneBoard[legalMove.row][legalMove.col] = minCol;
+            values.add(minValue(cloneBoard, maxCol, minCol));
+        }
+        return Collections.min(values);
+    }
+
+    /*
     private int[] minimax(int player, List<Move>  legalMoves, Color[][] board, Color me){
         int winner;
         int row = col = -1;
