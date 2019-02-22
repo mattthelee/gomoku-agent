@@ -94,19 +94,24 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int[] whiteRuns = new int[96];
         int[] blackRuns = new int[96];
         List<Move> legalMoves = new ArrayList<>();
-        System.out.println("*** DEBUG *** ");
+        //System.out.println("*** DEBUG *** ");
         for (int col = 0; col < 8; col++ ) {
             for (int row = 0; row < 8; row++) {
                 // For each square
                 int squareID = row * 8 + col;
+                Color token = board[row][col];
+                if (token == null) {
+                    // For every empty square
+                    legalMoves.add(new Move(row, col));
+                    continue;
+                }
                 for(int runNo = 0; this.allRuns[squareID][runNo] != -1; ++runNo) {
                     // For each possible run
-                    Color token = board[row][col];
-                    System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
                     if (token == Color.white) {
                         // For every white square
-                        System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
+                        //System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
                         if (++whiteRuns[this.allRuns[squareID][runNo]] >= 5) {
+                            System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
                             System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
                             return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
                         }
@@ -118,14 +123,11 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                             return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns);
                         }
                     }
-                    if (token == null) {
-                        // For every empty square
-                        legalMoves.add(new Move(row, col));
-                    }
+
                 }
             }
         }
-        return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
+        return new BoardAnalysis(legalMoves, null, whiteRuns, blackRuns);
     }
 
 
