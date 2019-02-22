@@ -17,20 +17,34 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
+    class BoardAnalysis {
+        List<Move> legalMoves;
+        Color winner;
+        int[] whiteRuns;
+        int[] blackRuns;
+
+        BoardAnalysis (List<Move> legalMoves, Color winner, int[] whiteRuns, int[] blackRuns ){
+            this.whiteRuns = whiteRuns;
+            this.blackRuns = blackRuns;
+            this.legalMoves = legalMoves;
+            this.winner = winner;
+        }
+    }
+
     public Move chooseMove(Color[][] board, Color me) {
         Move bestMove = new Move(1, 1);
         try {
             long startTime = System.currentTimeMillis();
 
             // If I don't have a best move so far then take a random legal move
-            List<Move> legalMoves = getLegalMoves(board, me);
-            System.out.println("Number of Legal moves: " + legalMoves.size());
+            BoardAnalysis bd = boardAnalyser(board);
+            System.out.println("Number of Legal moves: " + bd.legalMoves.size());
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
 
-            bestMove = legalMoves.get(0);
+            bestMove = bd.legalMoves.get(0);
             //System.out.println("Failed to find move in time, choosing best so far");
-            if (doesMoveWin(board, bestMove,me, true))
+            if (doesMoveWin(board, bestMove,me))
                 System.out.println("My win predictor thinks this will win");
             return bestMove;
 
@@ -62,50 +76,20 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     //private Move chooseMove(Color[][] board, Color me, List<Move>  legalMoves, long startTime){ }
 
     boolean doesMoveWin(Color[][] board, Move testMove, Color me){
-        return doesMoveWin(board,testMove, me, false);
-    }
-
-    boolean doesMoveWin(Color[][] board, Move testMove, Color me, boolean actualMove){
         // Checks if given move will win on given board
-        // This method is largely based on the code from the GomokuBoard class, written by Simon Dixon
         int row = testMove.row;
         int col = testMove.col;
-        int runCount;
         Color[][] cloneBoard = board.clone();
         cloneBoard[row][col] = me;
-        List<Object> terminalResult = terminalTest(cloneBoard);
-        if (terminalResult.get(0) == me) {
+        BoardAnalysis bd= boardAnalyser(cloneBoard);
+        if (bd.winner == me) {
             // If that move wins
             return true;
-
-
         }
         return false;
     }
 
-    boolean doesMoveWinBackup(Color[][] board, Move testMove, boolean actualMove){
-        // Checks if given move will win on given board
-        // This method is largely based on the code from the GomokuBoard class, written by Simon Dixon
-        int row = testMove.row;
-        int col = testMove.col;
-        int runCount;
-
-
-        for(int runNo = 0; this.allRuns[row * 8 + col][runNo] != -1; ++runNo) {
-            if (actualMove) {
-                // If we're taking the move we want to increment the run counts
-                runCount = ++this.myRuns[this.allRuns[row * 8 + col][runNo]];
-            } else {
-                runCount = 1 + this.myRuns[this.allRuns[row * 8 + col][runNo]];
-            }
-            if (runCount >= 5) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private List<Object> terminalTest(Color[][] board){
+    private BoardAnalysis boardAnalyser(Color[][] board){
         // Checks for end of game and returns legalmoves if not ended
         int[] whiteRuns = new int[96];
         int[] blackRuns = new int[96];
@@ -124,14 +108,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                         System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
                         if (++whiteRuns[this.allRuns[squareID][runNo]] >= 5) {
                             System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
-                            return Arrays.asList(Color.white, null);
+                            return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
                         }
                     }
                     if (token == Color.black) {
                         // For every black square
                         if (++blackRuns[this.allRuns[squareID][runNo]] >= 5) {
                             System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
-                            return Arrays.asList(Color.black, null);
+                            return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns);
                         }
                     }
                     if (token == null) {
@@ -141,8 +125,10 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 }
             }
         }
-        return Arrays.asList(null,legalMoves);
+        return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
     }
+
+
 /*
     private int maxValue(Color[][] board, List<Move>  legalMoves){
 
