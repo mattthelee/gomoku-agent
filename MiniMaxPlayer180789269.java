@@ -11,7 +11,7 @@ import java.util.*;
 
 // TODO: Need to have the agent stop the search befroe running out of time
     // Need a reordering function that reorders the legalmoves depending on the heuristic
-    // Something is wrong with the max run calculation
+        // fixed the maxrun calculation problems but reordering isn;t working
     // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
         // to do this could use a unique number format for an id for the board to do this
     // Not sure that the state heuristic added anything
@@ -75,9 +75,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
             BoardAnalysis bd2= boardAnalyser(cloneBoard);
-            int myMaxRun = getMaxRunForPosition(cloneBoard,this.me,bestMove);
+            //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
             //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
-            if (myMaxRun >= 5)
+            if (bd2.winner != null)
                 System.out.println("My win predictor thinks this will win " + bd2.winner);
             return bestMove;
 
@@ -107,6 +107,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int longestBlackRun = 0;
         List<Move> legalMoves = new ArrayList<>();
         //System.out.println("*** DEBUG *** ");
+        longestWhiteRun = getMaxRunForBoard(board, Color.white);
+        if (longestWhiteRun >= 5) {
+            return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun );
+        }
+        longestBlackRun = getMaxRunForBoard(board, Color.black);
+        if (longestBlackRun >= 5) {
+            return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun );
+        }
         // Looping through each position is expensive so try to do only once
         for (int col = 0; col < 8; col++ ) {
             for (int row = 0; row < 8; row++) {
@@ -117,28 +125,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                     // For every empty square
                     legalMoves.add(new Move(row, col));
                     continue;
-                }
-                for(int runNo = 0; this.allRuns[squareID][runNo] != -1; ++runNo) {
-                    // For each possible run
-                    if (token == Color.white) {
-                        // For every white square
-                        //System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
-                        longestWhiteRun = Math.max(++whiteRuns[this.allRuns[squareID][runNo]], longestWhiteRun);
-                        if (longestWhiteRun >= 5) {
-                            //System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
-                            //System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
-                            return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun);
-                        }
-                    }
-                    if (token == Color.black) {
-                        // For every black square
-                        longestBlackRun = Math.max(++blackRuns[this.allRuns[squareID][runNo]], longestBlackRun);
-                        if (longestBlackRun >= 5) {
-                            //System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
-                            return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun);
-                        }
-                    }
-
                 }
             }
         }
@@ -164,6 +150,21 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             return Math.round(moveHeuristic(this.board, a, this.me) - moveHeuristic(this.board, b, this.me));
         }
     }
+
+    private int getMaxRunForBoard(Color[][] board, Color player){
+        // iterate down the first row and along the first column
+        // this will check all possible rows for runs
+        // TODO cn make this more efficient by avoind repeating vert and horizontal checks
+        int maxRun = 0;
+        maxRun = Math.max(maxRun, getMaxRunForPosition(board, player, new Move(0,0)));
+        for (int col = 1; col < 8; col++ ) {
+            maxRun = Math.max(maxRun, getMaxRunForPosition(board, player, new Move(0,col)));
+        }
+        for (int row = 1; row < 8; row++ ) {
+            maxRun = Math.max(maxRun, getMaxRunForPosition(board, player, new Move(row,0)));
+        }
+        return  maxRun;
+        }
 
     private int getMaxRunForPosition(Color[][] board, Color player, Move move){
         // Gives the maximum run for given player, searching only positions connected to given move
