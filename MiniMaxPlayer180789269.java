@@ -33,12 +33,16 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int[] blackRuns;
         float valueToBlack;
         float valueToWhite;
+        int longestWhiteRun;
+        int longestBlackRun;
 
-        BoardAnalysis (List<Move> legalMoves, Color winner, int[] whiteRuns, int[] blackRuns){
+        BoardAnalysis (List<Move> legalMoves, Color winner, int[] whiteRuns, int[] blackRuns, int longestWhiteRun, int longestBlackRun){
             this.whiteRuns = whiteRuns;
             this.blackRuns = blackRuns;
             this.legalMoves = legalMoves;
             this.winner = winner;
+            this.longestWhiteRun = longestWhiteRun;
+            this.longestBlackRun = longestBlackRun;
         }
     }
 
@@ -51,11 +55,16 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             this.notMe = (me == Color.white) ? Color.black : Color.white;
             // If I don't have a best move so far then take a random legal move
             BoardAnalysis bd = boardAnalyser(board);
-            System.out.println("Preorder: " + bd.legalMoves);
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
-            System.out.println("Post-order: " + bd.legalMoves);
 
+            if ( bd.legalMoves.size() ==62){
+                System.out.println("*** Second mvoe debugr: " + bd.legalMoves);
+                float aVal = debugmoveHeuristic(board,new Move(2,0),this.me);
+                float bVal = debugmoveHeuristic(board,new Move(3,4),this.me);
+                float cVal = debugmoveHeuristic(board,new Move(0,1),this.me);
+                System.out.println("Vals: " + aVal + ":" + bVal + ":" + cVal);
+            }
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
             bestMove = alphaBetaSearch(board,this.me);
@@ -106,6 +115,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         // Checks for end of game and returns legalmoves if not ended
         int[] whiteRuns = new int[96];
         int[] blackRuns = new int[96];
+        int longestWhiteRun = 0;
+        int longestBlackRun = 0;
         List<Move> legalMoves = new ArrayList<>();
         //System.out.println("*** DEBUG *** ");
         // Looping through each position is expensive so try to do only once
@@ -124,24 +135,26 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                     if (token == Color.white) {
                         // For every white square
                         //System.out.println("White incrementing with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
-                        if (++whiteRuns[this.allRuns[squareID][runNo]] >= 5) {
+                        longestWhiteRun = Math.max(++whiteRuns[this.allRuns[squareID][runNo]], longestWhiteRun);
+                        if (longestWhiteRun >= 5) {
                             //System.out.println("DEBUG " + squareID + ":"+  row + ":" + col + ":" + runNo );
                             //System.out.println("White wins with a run of: " + whiteRuns[this.allRuns[squareID][runNo]]);
-                            return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns);
+                            return new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun);
                         }
                     }
                     if (token == Color.black) {
                         // For every black square
-                        if (++blackRuns[this.allRuns[squareID][runNo]] >= 5) {
+                        longestBlackRun = Math.max(++blackRuns[this.allRuns[squareID][runNo]], longestBlackRun);
+                        if (longestBlackRun >= 5) {
                             //System.out.println("Black wins with a run of: " + blackRuns[this.allRuns[squareID][runNo]]);
-                            return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns);
+                            return new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun);
                         }
                     }
 
                 }
             }
         }
-        return new BoardAnalysis(legalMoves, null, whiteRuns, blackRuns);
+        return new BoardAnalysis(legalMoves, null, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun );
     }
 
     private List<Move> reorderMovesByHeuristic(Color[][] board, Color me, List<Move> legalMoves){
@@ -172,11 +185,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
 
         // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
-        float longestWhiteRun = Arrays.stream(bd.whiteRuns).max().getAsInt();
-        float longestBlackRun = Arrays.stream(bd.blackRuns).max().getAsInt();
-        double whiteScore = 1/(6.01-(longestWhiteRun + initiative));
-        double blackScore = 1/(6.01-(longestBlackRun - initiative));
-
+        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
+        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
 
         float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
         bd.valueToWhite = value;
@@ -188,7 +198,40 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         //System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
         //System.out.println("Value: " + value + " board: " + Arrays.toString(board) + me);
         return value;
+    }
 
+    private float debugstateHeuristic(Color[][] board, Color player, Color nextMove){
+        BoardAnalysis bd = boardAnalyser(board);
+
+        // Gives advantage to those that are playing next
+        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
+
+        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
+        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
+        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
+
+        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
+        bd.valueToWhite = value;
+        bd.valueToBlack = -value;
+
+        if (player == Color.black){
+            value = -value;
+        }
+        System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
+        System.out.println("Whiterun: " + bd.longestWhiteRun);
+        System.out.println("Blackrun: " + bd.longestBlackRun);
+
+        return value;
+    }
+
+    private float debugmoveHeuristic(Color[][] board, Move move, Color player){
+        Color[][] cloneBoard = deepCloneBoard(board);
+        cloneBoard[move.row][move.col] = player;
+        Color nextPLayer = (player == Color.white) ? Color.black : Color.white;
+
+        // returns a state value between -1 and 1. -1 indicates i lose
+        float value = debugstateHeuristic(cloneBoard, player, nextPLayer);
+        return value;
     }
 
     private float moveHeuristic(Color[][] board, Move move, Color player){
