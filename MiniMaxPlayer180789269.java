@@ -11,7 +11,7 @@ import java.util.*;
 
 // TODO: Need to have the agent stop the search befroe running out of time
     // Need a reordering function that reorders the legalmoves depending on the heuristic
-        // fixed the maxrun calculation problems but reordering isn;t working
+        // reordering is now working but the alphabetasearch is still not realisin git needs to defend so isn't working properly
     // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
         // to do this could use a unique number format for an id for the board to do this
     // Not sure that the state heuristic added anything
@@ -68,7 +68,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             }
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
-            bestMove = alphaBetaSearch(board,this.me);
+            bestMove = alphaBetaSearch(board,this.me, bd);
             //bestMove = bd.legalMoves.get(0);
             Color[][] cloneBoard = deepCloneBoard(board);
 
@@ -129,26 +129,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             }
         }
         return new BoardAnalysis(legalMoves, null, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun );
-    }
-
-    private List<Move> reorderMovesByHeuristic(Color[][] board, Color me, List<Move> legalMoves){
-        CompareMoves comparator = new CompareMoves(board, me);
-        Collections.sort(legalMoves,comparator);
-        return legalMoves;
-    }
-
-    class CompareMoves implements Comparator<Move>{
-        Color[][] board;
-        Color me;
-
-        CompareMoves(Color[][] board, Color me){
-            this.board = board;
-            this.me = me;
-        }
-
-        public int compare(Move a, Move b){
-            return Math.round(moveHeuristic(this.board, a, this.me) - moveHeuristic(this.board, b, this.me));
-        }
     }
 
     private int getMaxRunForBoard(Color[][] board, Color player){
@@ -301,8 +281,33 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
-    private Move alphaBetaSearch(Color[][] board, Color me){
-        BoardAnalysis bd = boardAnalyser(board);
+    private List<Move> reorderMovesByHeuristic(Color[][] board, Color me, List<Move> legalMoves){
+        CompareMoves comparator = new CompareMoves(board, me);
+        Collections.sort(legalMoves,comparator);
+        return legalMoves;
+    }
+
+    class CompareMoves implements Comparator<Move>{
+        Color[][] board;
+        Color me;
+
+        CompareMoves(Color[][] board, Color me){
+            this.board = board;
+            this.me = me;
+        }
+
+        public int compare(Move a, Move b){
+            // Sorts in descending order, i.e highest val will be first now
+            float comp = moveHeuristic(this.board, b, this.me) - moveHeuristic(this.board, a, this.me);
+            if (comp > 0){
+                return 1;
+            } else {
+                return -1;
+            }
+        }
+    }
+
+    private Move alphaBetaSearch(Color[][] board, Color me, BoardAnalysis bd){
         Move bestMove = bd.legalMoves.get(0);
         float bestVal = -2;
         Color minColor = (me == Color.white) ? Color.black : Color.white;
