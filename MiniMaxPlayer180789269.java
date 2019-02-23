@@ -75,8 +75,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
             BoardAnalysis bd2= boardAnalyser(cloneBoard);
-            System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
-            if (bd2.winner == this.me)
+            int myMaxRun = getMaxRunForPosition(cloneBoard,this.me,bestMove);
+            //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
+            if (myMaxRun >= 5)
                 System.out.println("My win predictor thinks this will win " + bd2.winner);
             return bestMove;
 
@@ -96,20 +97,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             }
         }
         return cloneBoard;
-    }
-
-    //private Move chooseMove(Color[][] board, Color me, List<Move>  legalMoves, long startTime){ }
-
-    boolean doesMoveWin(Color[][] board, Move testMove, Color me){
-        // Checks if given move will win on given board
-        Color[][] cloneBoard = deepCloneBoard(board);
-        cloneBoard[testMove.row][testMove.col] = me;
-        BoardAnalysis bd= boardAnalyser(cloneBoard);
-        if (bd.winner == me) {
-            // If that move wins
-            return true;
-        }
-        return false;
     }
 
     private BoardAnalysis boardAnalyser(Color[][] board){
@@ -178,58 +165,72 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
-    private int getMaxRun(Color[][] board, Color player, Move move){
-        //check for vertical win
-        //check for horizontal win
-        // check for topleft to bottom right diagonal win
-        // check for bottom left to top right diagonal win
-        return 0;
+    private int getMaxRunForPosition(Color[][] board, Color player, Move move){
+        // Gives the maximum run for given player, searching only positions connected to given move
+        int max1 = Math.max(genHorizontalMaxRun(board,player,move),genVerticalMaxRun(board,player,move));
+        int max2 = Math.max(genTLBRDiagMaxRun(board,player,move),genBLTRDiagMaxRun(board,player,move));
+
+        return Math.max(max1,max2);
     }
 
-    private List<Move>  genHorizontalMoves(Move move){
+    private int maxRunFromSeq(Color[][] board, Color player, List<Move> movSeq){
+        int maxRun = 0;
+        int currentRun = 0;
+        for (Move move : movSeq){
+            if (board[move.row][move.col] != player){
+                currentRun = 0;
+                continue;
+            }
+            currentRun++;
+            maxRun = Math.max(maxRun,currentRun);
+        }
+        return maxRun;
+    }
+
+    private int genHorizontalMaxRun(Color[][] board, Color player, Move move){
         // Generate horizontal pos
-        List<Move> horizontalMoves = new ArrayList<>();
+        List<Move> movSeq = new ArrayList<>();
         for (int col = 0; col < 8; col++ ){
-            horizontalMoves.add( new Move(move.row,col));
+            movSeq.add( new Move(move.row,col));
         }
-        return  horizontalMoves;
+        return  maxRunFromSeq(board, player,movSeq);
     }
 
-    private List<Move>  genVerticalMoves(Move move){
+    private int genVerticalMaxRun(Color[][] board, Color player, Move move){
         // Generate horizontal pos
-        List<Move> verticalMoves = new ArrayList<>();
+        List<Move> movSeq = new ArrayList<>();
         for (int row = 0; row < 8; row++ ){
-            verticalMoves.add( new Move(row,move.col));
+            movSeq.add( new Move(row,move.col));
         }
-        return  verticalMoves;
+        return  maxRunFromSeq(board, player,movSeq);
     }
 
-    private List<Move>  genTLBRDiagMoves(Move move){
+    private int genTLBRDiagMaxRun(Color[][] board, Color player, Move move){
         // Generate horizontal pos
-        List<Move> diagMoves = new ArrayList<>();
+        List<Move> movSeq = new ArrayList<>();
         int yintercept = move.col - move.row;
         int startingCol = Math.max(0,-yintercept);
         int row;
 
         for (int col = startingCol; col < 8 && col + yintercept < 8; col++ ){
             row = col + yintercept;
-            diagMoves.add( new Move(row,col));
+            movSeq.add( new Move(row,col));
         }
-        return  diagMoves;
+        return  maxRunFromSeq(board, player,movSeq);
     }
 
-    private List<Move>  genBLTRDiagMoves(Move move){
+    private int genBLTRDiagMaxRun(Color[][] board, Color player, Move move){
         // Generate horizontal pos
-        List<Move> diagMoves = new ArrayList<>();
-        int yintercept = move.col + move.row;
-        int startingCol = Math.max(0,-yintercept);
+        List<Move> movSeq = new ArrayList<>();
+        int yintercept =  move.col + move.row;
+        int startingCol = Math.min(8,yintercept);
         int row;
 
-        for (int col = startingCol; col < 8 && -col + yintercept < 8; col++ ){
+        for (int col = startingCol; col < 8 && -col + yintercept > 0; col++ ){
             row = -col + yintercept;
-            diagMoves.add( new Move(row,col));
+            movSeq.add( new Move(row,col));
         }
-        return  diagMoves;
+        return  maxRunFromSeq(board, player,movSeq);
     }
 
 
