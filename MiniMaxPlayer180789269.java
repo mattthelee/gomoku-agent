@@ -10,7 +10,8 @@ import java.util.*;
  **/
 
 // TODO: Need to have the agent stop the search befroe running out of time
-    // Need a reordering function that reorders the legalmoves depending on the heuristic - have heuristic but haven't applied a reordering yet
+    // Need a reordering function that reorders the legalmoves depending on the heuristic
+    // Something is wrong with the max run calculation
     // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
         // to do this could use a unique number format for an id for the board to do this
     // Not sure that the state heuristic added anything
@@ -61,7 +62,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             if ( bd.legalMoves.size() ==62){
                 System.out.println("*** Second mvoe debugr: " + bd.legalMoves);
                 float aVal = debugmoveHeuristic(board,new Move(2,0),this.me);
-                float bVal = debugmoveHeuristic(board,new Move(3,4),this.me);
+                float bVal = debugmoveHeuristic(board,new Move(3,0),this.me);
                 float cVal = debugmoveHeuristic(board,new Move(0,1),this.me);
                 System.out.println("Vals: " + aVal + ":" + bVal + ":" + cVal);
             }
@@ -175,6 +176,60 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         public int compare(Move a, Move b){
             return Math.round(moveHeuristic(this.board, a, this.me) - moveHeuristic(this.board, b, this.me));
         }
+    }
+
+    private int getMaxRun(Color[][] board, Color player, Move move){
+        //check for vertical win
+        //check for horizontal win
+        // check for topleft to bottom right diagonal win
+        // check for bottom left to top right diagonal win
+        return 0;
+    }
+
+    private List<Move>  genHorizontalMoves(Move move){
+        // Generate horizontal pos
+        List<Move> horizontalMoves = new ArrayList<>();
+        for (int col = 0; col < 8; col++ ){
+            horizontalMoves.add( new Move(move.row,col));
+        }
+        return  horizontalMoves;
+    }
+
+    private List<Move>  genVerticalMoves(Move move){
+        // Generate horizontal pos
+        List<Move> verticalMoves = new ArrayList<>();
+        for (int row = 0; row < 8; row++ ){
+            verticalMoves.add( new Move(row,move.col));
+        }
+        return  verticalMoves;
+    }
+
+    private List<Move>  genTLBRDiagMoves(Move move){
+        // Generate horizontal pos
+        List<Move> diagMoves = new ArrayList<>();
+        int yintercept = move.col - move.row;
+        int startingCol = Math.max(0,-yintercept);
+        int row;
+
+        for (int col = startingCol; col < 8 && col + yintercept < 8; col++ ){
+            row = col + yintercept;
+            diagMoves.add( new Move(row,col));
+        }
+        return  diagMoves;
+    }
+
+    private List<Move>  genBLTRDiagMoves(Move move){
+        // Generate horizontal pos
+        List<Move> diagMoves = new ArrayList<>();
+        int yintercept = move.col + move.row;
+        int startingCol = Math.max(0,-yintercept);
+        int row;
+
+        for (int col = startingCol; col < 8 && -col + yintercept < 8; col++ ){
+            row = -col + yintercept;
+            diagMoves.add( new Move(row,col));
+        }
+        return  diagMoves;
     }
 
 
