@@ -12,6 +12,7 @@ import java.util.*;
 // TODO: Need to have the agent stop the search befroe running out of time
     // Need a reordering function that reorders the legalmoves depending on the heuristic
         // reordering is now working but the alphabetasearch is still not realisin git needs to defend so isn't working properly
+        // Can see from the debug statements that the values are coming out thw wrong way for the alphasbetasearch
     // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
         // to do this could use a unique number format for an id for the board to do this
     // Not sure that the state heuristic added anything
@@ -59,12 +60,21 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
 
-            if ( bd.legalMoves.size() ==62){
-                System.out.println("*** Second mvoe debugr: " + bd.legalMoves);
-                float aVal = debugmoveHeuristic(board,new Move(2,0),this.me);
-                float bVal = debugmoveHeuristic(board,new Move(3,0),this.me);
-                float cVal = debugmoveHeuristic(board,new Move(0,1),this.me);
-                System.out.println("Vals: " + aVal + ":" + bVal + ":" + cVal);
+            if ( bd.legalMoves.size() ==62 && false){
+                Move testMove;
+                Color[][] cloneBoard2 = deepCloneBoard(board);
+                testMove = new Move(2,0);
+                cloneBoard2[testMove.row][testMove.col] = this.me;
+                float minVal = minABValue(cloneBoard2, me, Color.white, -2, 2, this.maxDepth);
+                System.out.println("***Best opposition move value " + minVal + " against: " + testMove.row + ":" + testMove.col);
+
+                Color[][] cloneBoard3 = deepCloneBoard(board);
+                testMove = new Move(0,1);
+                cloneBoard3[testMove.row][testMove.col] = this.me;
+                minVal = minABValue(cloneBoard3, me, Color.white, -2, 2, this.maxDepth);
+                System.out.println("***Best opposition move value " + minVal + " against: " + testMove.row + ":" + testMove.col);
+
+
             }
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
@@ -237,40 +247,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
-    private float debugstateHeuristic(Color[][] board, Color player, Color nextMove){
-        BoardAnalysis bd = boardAnalyser(board);
-
-        // Gives advantage to those that are playing next
-        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
-
-        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
-        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
-        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
-
-        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
-        bd.valueToWhite = value;
-        bd.valueToBlack = -value;
-
-        if (player == Color.black){
-            value = -value;
-        }
-        System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
-        System.out.println("Whiterun: " + bd.longestWhiteRun);
-        System.out.println("Blackrun: " + bd.longestBlackRun);
-
-        return value;
-    }
-
-    private float debugmoveHeuristic(Color[][] board, Move move, Color player){
-        Color[][] cloneBoard = deepCloneBoard(board);
-        cloneBoard[move.row][move.col] = player;
-        Color nextPLayer = (player == Color.white) ? Color.black : Color.white;
-
-        // returns a state value between -1 and 1. -1 indicates i lose
-        float value = debugstateHeuristic(cloneBoard, player, nextPLayer);
-        return value;
-    }
-
     private float moveHeuristic(Color[][] board, Move move, Color player){
         Color[][] cloneBoard = deepCloneBoard(board);
         cloneBoard[move.row][move.col] = player;
@@ -301,8 +277,10 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             float comp = moveHeuristic(this.board, b, this.me) - moveHeuristic(this.board, a, this.me);
             if (comp > 0){
                 return 1;
-            } else {
+            } else if (comp < 0){
                 return -1;
+            } else{
+                return 0;
             }
         }
     }
@@ -316,12 +294,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = me;
-            float minVal = minABValue(board, me, minColor, -2, 2, this.maxDepth);
+            float minVal = minABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
+            System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
                 bestMove = legalMove;
             }
         }
+        System.out.println("***Best move value " + bestVal + " against: " + bestMove.row + ":" + bestMove.col);
         return  bestMove;
     }
 
