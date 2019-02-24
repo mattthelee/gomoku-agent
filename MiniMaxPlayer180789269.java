@@ -13,6 +13,7 @@ import java.util.*;
     // Need a reordering function that reorders the legalmoves depending on the heuristic
         // reordering is now working but the alphabetasearch is still not realisin git needs to defend so isn't working properly
         // Can see from the debug statements that the values are coming out thw wrong way for the alphasbetasearch
+        // minvalue is finding the min value for better moves to be lower than that for worse moves
     // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
         // to do this could use a unique number format for an id for the board to do this
     // Not sure that the state heuristic added anything
@@ -295,13 +296,13 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = me;
             float minVal = minABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
-            System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
+            //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
                 bestMove = legalMove;
             }
         }
-        System.out.println("***Best move value " + bestVal + " against: " + bestMove.row + ":" + bestMove.col);
+        //System.out.println("***Best move value " + bestVal + " against: " + bestMove.row + ":" + bestMove.col);
         return  bestMove;
     }
 
@@ -348,7 +349,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to max depth");
-            return stateHeuristic(board, minColor, minColor);
+            return stateHeuristic(board, maxColor, maxColor);
         }
         bd.legalMoves = reorderMovesByHeuristic(board, minColor , bd.legalMoves);
         List<Integer> values = new ArrayList<Integer>();;
