@@ -344,7 +344,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float DEBUGmaxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = -2;
-        System.out.println("alphabeta " + alpha + ":" + beta + ":" + (alpha == beta));
+        //System.out.println("alphabeta " + alpha + ":" + beta + ":" + (alpha == beta));
         BoardAnalysis bd = boardAnalyser(board);
 
         if (bd.winner != null) {
@@ -364,7 +364,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[legalMove.row][legalMove.col] = maxColor;
             value = Math.max(value,DEBUGminABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
             if (value >= beta){
-                //System.out.println("val>beta");
+                System.out.println("val>beta");
                 return value;
             }
             alpha = Math.max(alpha,value);
@@ -376,7 +376,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float DEBUGminABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
-        System.out.println("alphabeta " + alpha + ":" + beta + ":" + (alpha == beta));
+        //System.out.println("alphabeta " + alpha + ":" + beta + ":" + (alpha == beta));
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
             //System.out.println("Got to a min win");
@@ -396,7 +396,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             float ab = DEBUGmaxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
             value = Math.min(beta,ab);
             if (value <= alpha){
-                //System.out.println("val<alpha");
+                System.out.println("val<alpha");
                 return value;
             }
             beta = Math.min(beta,value);
