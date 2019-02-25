@@ -215,8 +215,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         List<Move> movSeq = new ArrayList<>();
         int yintercept =  move.col + move.row;
         int startingCol;
-        if (yintercept > 8){
-            startingCol = yintercept - 8;
+        if (yintercept >= 7){
+            startingCol = yintercept - 7;
         } else {
             startingCol = 0;
         }
