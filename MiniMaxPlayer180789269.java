@@ -10,14 +10,11 @@ import java.util.*;
  **/
 
 // TODO: Need to have the agent stop the search befroe running out of time
-    // Do i need to do a reordering if the agent is searching all possible moves? Or do i need to reduce the branching factor?
+    // Do i need to do a reordering if the agent is searching all possible moves? Or do i need to reduce the branching factor? - reducing branching factor was bad but could stil be something i can do here.
     // Need to search deeper, so need to refactor the code for performance
         // Need to check that the win checker is only doing the required run checks
         // Need to check whether it's easier to do a win check by purely checking if a given move wins rather than a given board
             // i.e use the move heuristic rather than the state heuristic, which may make things a lot faster.
-    // Agent doesn't seem to be blocking diagonal moves when i played against it
-        // Might be because it wouldn't have played a diagonal move or might be a wider issue - need to check it's only diagonals
-        // Its more general problem as the agent doesn't detect diagonals against itself, so it clearly knows that diagonal is the best.
     // May want a heuristic based on monte carlo runs - random players were quite fast
     // Not sure that the state heuristic added anything
     // Need to do check for alpha == beta and finish search when that happens
@@ -347,14 +344,17 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float DEBUGmaxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = -2;
+        if (alpha == beta){
+            System.out.println("alpha==beta should stop analysis");
+        }
         BoardAnalysis bd = boardAnalyser(board);
+
         if (bd.winner != null) {
             System.out.println("Got to a min player win scenario");
             return value;
         }
         --depthRemaining;
         if (depthRemaining < 1){
-            System.out.println("Got to maxdepth in maxABVALUE");
             return stateHeuristic(board, maxColor, maxColor);
         }
         bd.legalMoves = reorderMovesByHeuristic(board, maxColor , bd.legalMoves);
@@ -364,7 +364,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = maxColor;
-            value = Math.max(value,minABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
+            value = Math.max(value,DEBUGminABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
             if (value >= beta){
                 //System.out.println("val>beta");
                 return value;
@@ -378,6 +378,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float DEBUGminABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
+        if (alpha == beta){
+            System.out.println("alpha==beta should stop analysis");
+        }
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
             //System.out.println("Got to a min win");
