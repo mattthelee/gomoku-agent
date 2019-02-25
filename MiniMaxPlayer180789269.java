@@ -67,7 +67,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             // If I don't have a best move so far then take a random legal move
             BoardAnalysis180789269 bd = boardAnalyser(board);
 
-            //bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
+            bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             //bd.legalMoves = trimLegalMoves(bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
             System.out.println("Whiteruns " + bd.longestWhiteRun);
@@ -397,6 +397,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         float value = getMaxRunForPosition(board,player, move)/10;
         return value;
     }
+
 
     private List<Move> reorderMovesByHeuristic(Color[][] board, Color me, List<Move> legalMoves){
         CompareMoves180789269 comparator = new CompareMoves180789269(board, me);
