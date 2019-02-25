@@ -25,7 +25,7 @@ import java.util.*;
 
 class MiniMaxPlayer180789269 extends GomokuPlayer {
     int maxBranching = 64;
-    int maxDepth = 4;
+    int maxDepth = 6;
     int moveCounter = -1;
     Color me;
     Color notMe;
@@ -66,6 +66,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             ++this.moveCounter;
             // If I don't have a best move so far then take a random legal move
             BoardAnalysis180789269 bd = boardAnalyser(board);
+
             //bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             //bd.legalMoves = trimLegalMoves(bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
@@ -80,7 +81,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
             bestMove = alphaBetaSearch(board,this.me, bd);
-            System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
+            //System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
 
             return bestMove;
 
@@ -357,8 +358,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float fastStateHeuristic(Color[][] board, Color player, Color nextMove, Move move){
         // Returns a measure of the value of a board state to the player
-                return 0;}
-                /*
+                //return 0;}
+
         BoardAnalysis180789269 bd = fasterBoardAnalyser(getBoardID(board), move, player );
         // If the player has won in this scenario then we want it to have the largest value
         if (bd.winner == player){
@@ -385,7 +386,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         //System.out.println("Value: " + value + " board: " + Arrays.toString(board) + me);
         // TODO this is essentially getting us to ignore the value of the state
         return value;
-    } */
+    }
 
     private float moveHeuristic(Color[][] board, Move move, Color player){
 
@@ -432,7 +433,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
             //System.out.println("***Trying different top level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
-            bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
+            //bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             float minVal = minABValue(bd.boardID, legalMove, me, minColor, alpha, beta, this.maxDepth);
             //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
@@ -444,7 +445,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 return bestMove;
             }
             alpha = Math.max(alpha,minVal);
-            System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
+            //System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
 
         }
 
@@ -462,10 +463,10 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to maxdepth");
-            return stateHeuristic(bd.board, maxColor, maxColor);
+            return 0; // stateHeuristic(bd.board, maxColor, maxColor);
         }
         //bd.legalMoves = reorderMovesByHeuristic(bd.board, maxColor , bd.legalMoves);
-        List<Integer> values = new ArrayList<Integer>();;
+        List<Integer> values = new ArrayList<Integer>();
         for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
             //System.out.println("Trying different max level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
@@ -491,7 +492,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to max depth");
-            return stateHeuristic(bd.board, maxColor, minColor);
+            return 0; //stateHeuristic(bd.board, maxColor, minColor);
         }
         //bd.legalMoves = reorderMovesByHeuristic(bd.board, minColor , bd.legalMoves);
         List<Integer> values = new ArrayList<Integer>();;
