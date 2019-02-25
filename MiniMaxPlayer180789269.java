@@ -274,10 +274,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int col = startingCol; col < 8 && (-col + yintercept) >= 0 ; col++ ){
             row = -col + yintercept;
             movSeq.add( new Move(row,col));
-            if (row == 8 || col ==8){
-                System.out.println("diagMove: " + row + ": " + col + " for move: " + move.row + ":" + move.col);
-            }
-
         }
         return  maxRunFromSeq(board, player,movSeq);
     }
