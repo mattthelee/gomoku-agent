@@ -57,7 +57,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     public Move chooseMove(Color[][] board, Color me) {
         Move bestMove = new Move(1, 1);
         try {
-            DEBUGgenBLTRDiagMaxRun(board, Color.White, new Move(0,4));
+            DEBUGgenBLTRDiagMaxRun(board, Color.white, new Move(0,4));
             long startTime = System.currentTimeMillis();
             //System.out.println("pre minimax " + board[bestMove.row][bestMove.col]);
             this.me = me;
@@ -233,7 +233,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int col = startingCol; col < 8 && -col + yintercept > 0; col++ ){
             row = -col + yintercept;
             movSeq.add( new Move(row,col));
-            System.out.println("Move in diagonal: " row + ":" + col);
+            System.out.println("Move in diagonal: " + row + ":" + col);
         }
         return  maxRunFromSeq(board, player,movSeq);
     }
