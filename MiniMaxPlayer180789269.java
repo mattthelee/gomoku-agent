@@ -17,15 +17,17 @@ import java.util.*;
             // i.e use the move heuristic rather than the state heuristic, which may make things a lot faster.
     // Agent doesn't seem to be blocking diagonal moves when i played against it
         // Might be because it wouldn't have played a diagonal move or might be a wider issue - need to check it's only diagonals
+        // Its more general problem as the agent doesn't detect diagonals against itself, so it clearly knows that diagonal is the best.
     // May want a heuristic based on monte carlo runs - random players were quite fast
     // Not sure that the state heuristic added anything
+    // Need to do check for alpha == beta and finish search when that happens
 
     //Done
     // Need To implement alpha-beta pruning - done
 
 class MiniMaxPlayer180789269 extends GomokuPlayer {
     int maxBranching = 64;
-    int maxDepth = 2;
+    int maxDepth = 3;
     Color me;
     Color notMe;
     HashMap<String,BoardAnalysis> analysedBoards = new HashMap<String,BoardAnalysis>();
@@ -296,7 +298,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = me;
-            float minVal = minABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
+            float minVal = DEBUGminABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
             //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
@@ -312,7 +314,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
             //System.out.println("Got to a max win");
-            return -1;
+            return value;
         }
         --depthRemaining;
         if (depthRemaining < 1){
@@ -337,12 +339,44 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
+
+    private float DEBUGminABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
+        float value = 2;
+        BoardAnalysis bd = boardAnalyser(board);
+        if (bd.winner != null) {
+            //System.out.println("Got to a min win");
+            return value; // stand in for infinity
+        }
+        --depthRemaining;
+        if (depthRemaining < 1){
+            //System.out.println("Got to max depth");
+            return stateHeuristic(board, maxColor, minColor);
+        }
+        bd.legalMoves = reorderMovesByHeuristic(board, minColor , bd.legalMoves);
+        List<Integer> values = new ArrayList<Integer>();;
+        for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
+            Move legalMove = bd.legalMoves.get(i);
+            Color[][] cloneBoard = deepCloneBoard(board);
+            cloneBoard[legalMove.row][legalMove.col] = minColor;
+            float ab = maxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining)
+            value = Math.min(beta,ab);
+            System.out.println("Trying different min level action: " + legalMove.row + ":" + legalMove.col + " with val: " + ab);
+            if (value <= alpha){
+                //System.out.println("val<alpha");
+                return value;
+            }
+            beta = Math.min(beta,value);
+        }
+        //xSystem.out.println("Min best val");
+        return value;
+    }
+
     private float minABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
             //System.out.println("Got to a min win");
-            return 1; // stand in for infinity
+            return value; // stand in for infinity
         }
         --depthRemaining;
         if (depthRemaining < 1){
