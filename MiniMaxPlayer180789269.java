@@ -221,7 +221,12 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         // Generate horizontal pos
         List<Move> movSeq = new ArrayList<>();
         int yintercept =  move.col + move.row;
-        int startingCol = Math.min(8,yintercept);
+        int startingCol;
+        if (yintercept > 8){
+            startingCol = yintercept - 8;
+        } else {
+            startingCol = yintercept;
+        }
         int row;
 
         for (int col = startingCol; col < 8 && -col + yintercept > 0; col++ ){
