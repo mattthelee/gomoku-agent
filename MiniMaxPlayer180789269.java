@@ -142,6 +142,12 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return bd;
     }
 
+    private   List<Move> trimLegalMoves(List<Move> legalMoves, int moveCounter){
+        // Removes moves that are not
+        return legalMoves;
+    }
+
+
     private BoardAnalysis180789269 fasterBoardAnalyser(String prevBoardID, Move move, Color moveColor){
         // Checks for end of game and returns legalmoves if not ended
         int longestWhiteRun = 0;
