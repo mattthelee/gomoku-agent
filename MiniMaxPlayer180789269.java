@@ -77,7 +77,22 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
             BoardAnalysis bd2= boardAnalyser(cloneBoard);
-            
+            BoardAnalysis bd3= fasterBoardAnalyser(bd.boardID, bestMove, me);
+            if ((bd2.boardID != bd3.boardID) || (bd2.longestWhiteRun != bd3.longestWhiteRun) || (bd2.longestBlackRun != bd3.longestBlackRun) || (bd2.board != bd3.board)){
+
+                System.out.println("ID1: " + bd2.boardID);
+                System.out.println("ID2: " + bd3.boardID);
+
+                System.out.println("Whiterun: " + bd2.longestWhiteRun + ":" + bd3.longestWhiteRun);
+                System.out.println("blackrun: " + bd2.longestBlackRun+  ":" + bd3.longestBlackRun);
+                System.out.println("board: " + bd2.board + ":" + bd3.board);
+            }
+
+
+
+
+
+
             //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
             //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
             if (bd2.winner != null)
@@ -100,8 +115,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         BoardAnalysis bd;
 
         // Looping through each position is expensive so try to do only once
-        for (int col = 0; col < 8; col++ ) {
-            for (int row = 0; row < 8; row++) {
+        for (int row = 0; row < 8; row++ ) {
+            for (int col = 0; col < 8; col++) {
                 Color token = board[row][col];
                 // For each square
                 int squareID = row * 8 + col;
