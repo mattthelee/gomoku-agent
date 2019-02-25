@@ -19,16 +19,19 @@ import java.util.*;
     // Not sure that the state heuristic added anything
     // Need to do check for alpha == beta and finish search when that happens - doesn't seem to happen may need to work out why not
     // Do an undo on the board rather than doing a clone - set a
+    // Simpler ordering heuristic based on whether the move is next to other pieces or not?
+    // Can i eliminate moves that are not within two of existing positions?
 
     //Done
     // Need To implement alpha-beta pruning - done
 
 class MiniMaxPlayer180789269 extends GomokuPlayer {
     int maxBranching = 64;
-    int maxDepth = 3;
+    int maxDepth = 4;
     Color me;
     Color notMe;
     HashMap<String,BoardAnalysis180789269> analysedBoards = new HashMap<String,BoardAnalysis180789269>();
+    List<Move> consideredMoves;
 
     class BoardAnalysis180789269 {
         List<Move> legalMoves;
@@ -65,33 +68,20 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
             System.out.println("Whiteruns " + bd.longestWhiteRun);
 
+            //hardcoded first moves
             if ( bd.legalMoves.size() ==64){
                 return new Move(4,4);
+            }
+            if ( bd.legalMoves.size() ==63){
+                if (board[4][4] == null){
+                    return new Move(4,4);
+                }
+                return new Move(3,4);
             }
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
             bestMove = alphaBetaSearch(board,this.me, bd);
-            //bestMove = bd.legalMoves.get(0);
-            Color[][] cloneBoard = deepCloneBoard(board);
 
-            cloneBoard[bestMove.row][bestMove.col] = this.me;
-
-            BoardAnalysis180789269 bd2= boardAnalyser(cloneBoard);
-            BoardAnalysis180789269 bd3= fasterBoardAnalyser(bd.boardID, bestMove, me);
-            if ((bd2.boardID != bd3.boardID) || (bd2.longestWhiteRun != bd3.longestWhiteRun) || (bd2.longestBlackRun != bd3.longestBlackRun) || (bd2.board != bd3.board)){
-
-                System.out.println("ID1: " + bd2.boardID);
-                System.out.println("ID2: " + bd3.boardID);
-
-                System.out.println("Whiterun: " + bd2.longestWhiteRun + ":" + bd3.longestWhiteRun);
-                System.out.println("blackrun: " + bd2.longestBlackRun+  ":" + bd3.longestBlackRun);
-                System.out.println("board: " + bd2.board + ":" + bd3.board);
-            }
-            
-            //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
-            //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
-            if (bd2.winner != null)
-                System.out.println("My win predictor thinks this will win " + bd2.winner);
             return bestMove;
 
         } catch (Exception e) {
@@ -296,6 +286,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         if (bd.winner == player){
             return 2;
         }
+        if (bd.winner != null){
+            return -2;
+        }
         // Gives advantage to those that are playing next
         double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
         // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
@@ -312,7 +305,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
         //System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
         //System.out.println("Value: " + value + " board: " + Arrays.toString(board) + me);
-        return value;
+        // TODO this is essentially getting us to ignore the value of the state
+        return 0;
     }
 
     private float moveHeuristic(Color[][] board, Move move, Color player){
@@ -360,7 +354,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             //System.out.println("***Trying different top level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
             float minVal = minABValue(bd.boardID, legalMove, me, minColor, -2, 2, this.maxDepth);
-            //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
+            System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
                 bestMove = legalMove;
