@@ -25,7 +25,7 @@ import java.util.*;
 
 class MiniMaxPlayer180789269 extends GomokuPlayer {
     int maxBranching = 64;
-    int maxDepth = 6;
+    int maxDepth = 5;
     int moveCounter = -1;
     Color me;
     Color notMe;
@@ -81,7 +81,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
             bestMove = alphaBetaSearch(board,this.me, bd);
-            //System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
+            System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
 
             return bestMove;
 
@@ -393,7 +393,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         Color nextPLayer = (player == Color.white) ? Color.black : Color.white;
 
         // returns a state value between -1 and 1. -1 indicates i lose
-        float value = fastStateHeuristic(board, player, nextPLayer, move);
+        //float value = fastStateHeuristic(board, player, nextPLayer, move);
+        float value = getMaxRunForPosition(board,player, move)/10;
         return value;
     }
 
