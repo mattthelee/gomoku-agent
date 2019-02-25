@@ -28,9 +28,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     int maxDepth = 3;
     Color me;
     Color notMe;
-    HashMap<String,BoardAnalysis> analysedBoards = new HashMap<String,BoardAnalysis>();
+    HashMap<String,BoardAnalysis180789269> analysedBoards = new HashMap<String,BoardAnalysis180789269>();
 
-    class BoardAnalysis {
+    class BoardAnalysis180789269 {
         List<Move> legalMoves;
         Color winner;
         int[] whiteRuns;
@@ -42,7 +42,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         String boardID;
         Color[][] board;
 
-        BoardAnalysis (List<Move> legalMoves, Color winner,int longestWhiteRun, int longestBlackRun, String boardID, Color[][] board){
+        BoardAnalysis180789269 (List<Move> legalMoves, Color winner,int longestWhiteRun, int longestBlackRun, String boardID, Color[][] board){
             this.legalMoves = legalMoves;
             this.winner = winner;
             this.longestWhiteRun = longestWhiteRun;
@@ -60,7 +60,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             this.me = me;
             this.notMe = (me == Color.white) ? Color.black : Color.white;
             // If I don't have a best move so far then take a random legal move
-            BoardAnalysis bd = boardAnalyser(board);
+            BoardAnalysis180789269 bd = boardAnalyser(board);
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
             System.out.println("Whiteruns " + bd.longestWhiteRun);
@@ -76,8 +76,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
-            BoardAnalysis bd2= boardAnalyser(cloneBoard);
-            BoardAnalysis bd3= fasterBoardAnalyser(bd.boardID, bestMove, me);
+            BoardAnalysis180789269 bd2= boardAnalyser(cloneBoard);
+            BoardAnalysis180789269 bd3= fasterBoardAnalyser(bd.boardID, bestMove, me);
             if ((bd2.boardID != bd3.boardID) || (bd2.longestWhiteRun != bd3.longestWhiteRun) || (bd2.longestBlackRun != bd3.longestBlackRun) || (bd2.board != bd3.board)){
 
                 System.out.println("ID1: " + bd2.boardID);
@@ -87,12 +87,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 System.out.println("blackrun: " + bd2.longestBlackRun+  ":" + bd3.longestBlackRun);
                 System.out.println("board: " + bd2.board + ":" + bd3.board);
             }
-
-
-
-
-
-
+            
             //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
             //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
             if (bd2.winner != null)
@@ -106,13 +101,13 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
-    private BoardAnalysis boardAnalyser(Color[][] board){
+    private BoardAnalysis180789269 boardAnalyser(Color[][] board){
         // Checks for end of game and returns legalmoves if not ended
         int longestWhiteRun = 0;
         int longestBlackRun = 0;
         String boardID = "";
         List<Move> legalMoves = new ArrayList<>();
-        BoardAnalysis bd;
+        BoardAnalysis180789269 bd;
 
         // Looping through each position is expensive so try to do only once
         for (int row = 0; row < 8; row++ ) {
@@ -141,29 +136,29 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         //System.out.println("*** DEBUG *** ");
         longestWhiteRun = getMaxRunForBoard(board, Color.white);
         if (longestWhiteRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
+            bd = new BoardAnalysis180789269(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
         longestBlackRun = getMaxRunForBoard(board, Color.black);
         if (longestBlackRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
+            bd = new BoardAnalysis180789269(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
-        bd = new BoardAnalysis(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
+        bd = new BoardAnalysis180789269(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
         this.analysedBoards.put(boardID,bd);
         return bd;
     }
 
-    private BoardAnalysis fasterBoardAnalyser(String prevBoardID, Move move, Color moveColor){
+    private BoardAnalysis180789269 fasterBoardAnalyser(String prevBoardID, Move move, Color moveColor){
         // Checks for end of game and returns legalmoves if not ended
         int longestWhiteRun = 0;
         int longestBlackRun = 0;
         String boardID = "";
         List<Move> legalMoves;
-        BoardAnalysis bd;
-        BoardAnalysis prevbd = this.analysedBoards.get(prevBoardID);
+        BoardAnalysis180789269 bd;
+        BoardAnalysis180789269 prevbd = this.analysedBoards.get(prevBoardID);
         Color[][] board;
 
         // Looping through each position is expensive so try to do only once
@@ -191,16 +186,16 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
         //System.out.println("*** DEBUG *** ");
         if (longestWhiteRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
+            bd = new BoardAnalysis180789269(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
         if (longestBlackRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
+            bd = new BoardAnalysis180789269(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
-        bd = new BoardAnalysis(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
+        bd = new BoardAnalysis180789269(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
         this.analysedBoards.put(boardID,bd);
         return bd;
     }
@@ -296,7 +291,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float stateHeuristic(Color[][] board, Color player, Color nextMove){
         // Returns a measure of the value of a board state to the player
-        BoardAnalysis bd = boardAnalyser(board);
+        BoardAnalysis180789269 bd = boardAnalyser(board);
         // If the player has won in this scenario then we want it to have the largest value
         if (bd.winner == player){
             return 2;
@@ -331,15 +326,15 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     }
 
     private List<Move> reorderMovesByHeuristic(Color[][] board, Color me, List<Move> legalMoves){
-        CompareMoves comparator = new CompareMoves(board, me);
+        CompareMoves180789269 comparator = new CompareMoves180789269(board, me);
         Collections.sort(legalMoves,comparator);
         return legalMoves;
     }
 
-    class CompareMoves implements Comparator<Move>{
+    class CompareMoves180789269 implements Comparator<Move>{
         Color[][] board;
         Color me;
-        CompareMoves(Color[][] board, Color me){
+        CompareMoves180789269(Color[][] board, Color me){
             this.board = board;
             this.me = me;
         }
@@ -357,7 +352,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
     }
 
-    private Move alphaBetaSearch(Color[][] board, Color me, BoardAnalysis bd){
+    private Move alphaBetaSearch(Color[][] board, Color me, BoardAnalysis180789269 bd){
         Move bestMove = bd.legalMoves.get(0);
         float bestVal = -2;
         Color minColor = (me == Color.white) ? Color.black : Color.white;
@@ -377,7 +372,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float maxABValue(String boardID, Move lastMove, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = -2;
-        BoardAnalysis bd = fasterBoardAnalyser(boardID,lastMove,minColor);
+        BoardAnalysis180789269 bd = fasterBoardAnalyser(boardID,lastMove,minColor);
         if (bd.winner != null) {
             //System.out.println("Got to a max win");
             return value;
@@ -406,7 +401,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float minABValue(String boardID, Move lastMove, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
-        BoardAnalysis bd = fasterBoardAnalyser(boardID,lastMove,maxColor);
+        BoardAnalysis180789269 bd = fasterBoardAnalyser(boardID,lastMove,maxColor);
         if (bd.winner != null) {
             //System.out.println("Got to a min win");
             return value; // stand in for infinity
