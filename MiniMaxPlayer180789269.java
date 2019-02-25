@@ -226,11 +226,12 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         if (yintercept > 8){
             startingCol = yintercept - 8;
         } else {
-            startingCol = yintercept;
+            startingCol = 0;
         }
         int row;
+        System.out.println("Diag sequence debug: " + yintercept + ":" + startingCol);
 
-        for (int col = startingCol; col < 8 && -col + yintercept > 0; col++ ){
+        for (int col = startingCol; col < 8 && (-col + yintercept) >= 0; col++ ){
             row = -col + yintercept;
             movSeq.add( new Move(row,col));
             System.out.println("Move in diagonal: " + row + ":" + col);
@@ -246,11 +247,11 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         if (yintercept > 8){
             startingCol = yintercept - 8;
         } else {
-            startingCol = yintercept;
+            startingCol = 0;
         }
         int row;
 
-        for (int col = startingCol; col < 8 && -col + yintercept > 0; col++ ){
+        for (int col = startingCol; col < 8 && -col + yintercept >= 0; col++ ){
             row = -col + yintercept;
             movSeq.add( new Move(row,col));
         }
