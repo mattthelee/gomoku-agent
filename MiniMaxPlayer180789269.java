@@ -358,7 +358,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = minColor;
-            float ab = maxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining)
+            float ab = maxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
             value = Math.min(beta,ab);
             System.out.println("Trying different min level action: " + legalMove.row + ":" + legalMove.col + " with val: " + ab);
             if (value <= alpha){
