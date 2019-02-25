@@ -57,7 +57,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     public Move chooseMove(Color[][] board, Color me) {
         Move bestMove = new Move(1, 1);
         try {
-            DEBUGgenBLTRDiagMaxRun(board, Color.white, new Move(0,4));
             long startTime = System.currentTimeMillis();
             //System.out.println("pre minimax " + board[bestMove.row][bestMove.col]);
             this.me = me;
@@ -157,10 +156,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int row = 1; row < 8; row++ ) {
             maxRun = Math.max(maxRun, getMaxRunForPosition(board, player, new Move(row,0)));
         }
-        if (board[4][0] == player && board[3][1] == player && board[2][2] == player && board[1][3] == player && board[0][4] == player){
-            System.out.println("The max runs for this should be 5 but are: " + maxRun);
-        }
-
         return  maxRun;
         }
 
@@ -214,27 +209,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int col = startingCol; col < 8 && col + yintercept < 8; col++ ){
             row = col + yintercept;
             movSeq.add( new Move(row,col));
-        }
-        return  maxRunFromSeq(board, player,movSeq);
-    }
-
-    private int DEBUGgenBLTRDiagMaxRun(Color[][] board, Color player, Move move){
-        // Generate horizontal pos
-        List<Move> movSeq = new ArrayList<>();
-        int yintercept =  move.col + move.row;
-        int startingCol;
-        if (yintercept > 8){
-            startingCol = yintercept - 8;
-        } else {
-            startingCol = 0;
-        }
-        int row;
-        System.out.println("Diag sequence debug: " + yintercept + ":" + startingCol);
-
-        for (int col = startingCol; col < 8 && (-col + yintercept) >= 0; col++ ){
-            row = -col + yintercept;
-            movSeq.add( new Move(row,col));
-            System.out.println("Move in diagonal: " + row + ":" + col);
         }
         return  maxRunFromSeq(board, player,movSeq);
     }
@@ -420,9 +394,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = minColor;
-            if (legalMove.row == 0 && legalMove.col == 4){
-                System.out.println("Serious debugging for " + legalMove.row + ":" + legalMove.col + " maxWhiteruns = " + boardAnalyser(cloneBoard).longestWhiteRun);
-            }
             float ab = DEBUGmaxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
             value = Math.min(beta,ab);
             if (value <= alpha){
