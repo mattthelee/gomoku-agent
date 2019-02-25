@@ -10,12 +10,8 @@ import java.util.*;
  **/
 
 // TODO: Need to have the agent stop the search befroe running out of time
-    // Need a reordering function that reorders the legalmoves depending on the heuristic
-        // reordering is now working but the alphabetasearch is still not realisin git needs to defend so isn't working properly
-        // Can see from the debug statements that the values are coming out thw wrong way for the alphasbetasearch
-        // minvalue is finding the min value for better moves to be lower than that for worse moves
-    // Save the boards to memory with the board analysis object and heuristic so don't have to keep running it
-        // to do this could use a unique number format for an id for the board to do this
+    // Do i need to do a reordering if the agent is searching all possible moves?
+    // May want a heuristic based on monte carlo runs - random players were quite fast
     // Not sure that the state heuristic added anything
 
     //Done
@@ -28,7 +24,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     Color notMe;
     HashMap<String,BoardAnalysis> analysedBoards = new HashMap<String,BoardAnalysis>();
 
-
     class BoardAnalysis {
         List<Move> legalMoves;
         Color winner;
@@ -39,7 +34,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int longestWhiteRun;
         int longestBlackRun;
         String boardID;
-
 
         BoardAnalysis (List<Move> legalMoves, Color winner, int[] whiteRuns, int[] blackRuns, int longestWhiteRun, int longestBlackRun, String boardID){
             this.whiteRuns = whiteRuns;
@@ -66,7 +60,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
             if ( bd.legalMoves.size() ==64){
                 return new Move(4,4);
-
             }
 
             //while (System.currentTimeMillis() < startTime + 9800) { }
@@ -89,7 +82,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             return bestMove; // Might get lucky and have a valid move to return
         }
     }
-
 
     private BoardAnalysis boardAnalyser(Color[][] board){
         // Checks for end of game and returns legalmoves if not ended
@@ -226,13 +218,15 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return  maxRunFromSeq(board, player,movSeq);
     }
 
-
     private float stateHeuristic(Color[][] board, Color player, Color nextMove){
+        // Returns a measure of the value of a board state to the player
         BoardAnalysis bd = boardAnalyser(board);
-
+        // If the player has won in this scenario then we want it to have the largest value
+        if (bd.winner == player){
+            return 2;
+        }
         // Gives advantage to those that are playing next
         double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
-
         // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
         double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
         double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
@@ -269,7 +263,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     class CompareMoves implements Comparator<Move>{
         Color[][] board;
         Color me;
-
         CompareMoves(Color[][] board, Color me){
             this.board = board;
             this.me = me;
@@ -313,7 +306,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         BoardAnalysis bd = boardAnalyser(board);
         if (bd.winner != null) {
             //System.out.println("Got to a max win");
-
             return -1;
         }
         --depthRemaining;
@@ -334,10 +326,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 return value;
             }
             alpha = Math.max(alpha,value);
-
         }
         //System.out.println("Max best val");
-
         return value;
     }
 
@@ -351,7 +341,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to max depth");
-            return stateHeuristic(board, maxColor, maxColor);
+            return stateHeuristic(board, maxColor, minColor);
         }
         bd.legalMoves = reorderMovesByHeuristic(board, minColor , bd.legalMoves);
         List<Integer> values = new ArrayList<Integer>();;
@@ -376,7 +366,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int col = 0; col < 8; col++ ) {
             for (int row = 0; row < 8; row++) {
                 cloneBoard[row][col] = board[row][col];
-
             }
         }
         return cloneBoard;
