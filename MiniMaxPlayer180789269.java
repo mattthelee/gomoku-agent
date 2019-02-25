@@ -156,7 +156,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int row = 1; row < 8; row++ ) {
             maxRun = Math.max(maxRun, getMaxRunForPosition(board, player, new Move(row,0)));
         }
-        if (board[4][0] == player && board[3][1] == player && board[2][3] == player && board[1][4] == player && board[0][4] == player){
+        if (board[4][0] == player && board[3][1] == player && board[2][2] == player && board[1][3] == player && board[0][4] == player){
             System.out.println("The max runs for this should be 5 but are: " + maxRun);
         }
 
@@ -395,9 +395,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[legalMove.row][legalMove.col] = minColor;
             float ab = DEBUGmaxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
             value = Math.min(beta,ab);
-            if (board[legalMove.row][legalMove.col] != null){
-                System.out.println("*** invalid action being considered!!!");
-            }
             System.out.println("Trying different min level action: " + legalMove.row + ":" + legalMove.col + " with val: " + ab);
             if (value <= alpha){
                 //System.out.println("val<alpha");
