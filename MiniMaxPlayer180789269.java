@@ -344,7 +344,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private float DEBUGmaxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = -2;
-        if (beta <= 2) {
+        if (beta <= -2) {
             System.out.println("beta at min don't need to do this");
         }
         BoardAnalysis bd = boardAnalyser(board);
