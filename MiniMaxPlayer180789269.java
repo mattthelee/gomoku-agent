@@ -77,6 +77,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
             BoardAnalysis bd2= boardAnalyser(cloneBoard);
+            
             //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
             //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
             if (bd2.winner != null)
@@ -264,7 +265,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         List<Move> movSeq = new ArrayList<>();
         int yintercept =  move.col + move.row;
         int startingCol;
-        if (yintercept > 7){
+        if (yintercept >= 7){
             startingCol = yintercept - 7;
         } else {
             startingCol = 0;
