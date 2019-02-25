@@ -17,7 +17,8 @@ import java.util.*;
             // i.e use the move heuristic rather than the state heuristic, which may make things a lot faster.
     // May want a heuristic based on monte carlo runs - random players were quite fast
     // Not sure that the state heuristic added anything
-    // Need to do check for alpha == beta and finish search when that happens
+    // Need to do check for alpha == beta and finish search when that happens - doesn't seem to happen may need to work out why not
+    // Do an undo on the board rather than doing a clone - set a
 
     //Done
     // Need To implement alpha-beta pruning - done
@@ -39,15 +40,15 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int longestWhiteRun;
         int longestBlackRun;
         String boardID;
+        Color[][] board;
 
-        BoardAnalysis (List<Move> legalMoves, Color winner, int[] whiteRuns, int[] blackRuns, int longestWhiteRun, int longestBlackRun, String boardID){
-            this.whiteRuns = whiteRuns;
-            this.blackRuns = blackRuns;
+        BoardAnalysis (List<Move> legalMoves, Color winner,int longestWhiteRun, int longestBlackRun, String boardID, Color[][] board){
             this.legalMoves = legalMoves;
             this.winner = winner;
             this.longestWhiteRun = longestWhiteRun;
             this.longestBlackRun = longestBlackRun;
             this.boardID = boardID;
+            this.board = board;
         }
     }
 
@@ -62,6 +63,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             BoardAnalysis bd = boardAnalyser(board);
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
+            System.out.println("Whiteruns " + bd.longestWhiteRun);
 
             if ( bd.legalMoves.size() ==64){
                 return new Move(4,4);
@@ -75,6 +77,22 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             cloneBoard[bestMove.row][bestMove.col] = this.me;
 
             BoardAnalysis bd2= boardAnalyser(cloneBoard);
+            BoardAnalysis bd3= fasterBoardAnalyser(bd.boardID, bestMove, me);
+            if ((bd2.boardID != bd3.boardID) || (bd2.longestWhiteRun != bd3.longestWhiteRun) || (bd2.longestBlackRun != bd3.longestBlackRun) || (bd2.board != bd3.board)){
+
+                System.out.println("ID1: " + bd2.boardID);
+                System.out.println("ID2: " + bd3.boardID);
+
+                System.out.println("Whiterun: " + bd2.longestWhiteRun + ":" + bd3.longestWhiteRun);
+                System.out.println("blackrun: " + bd2.longestBlackRun+  ":" + bd3.longestBlackRun);
+                System.out.println("board: " + bd2.board + ":" + bd3.board);
+            }
+
+
+
+
+
+
             //int myMaxRun = getMaxRunForPosition(cloneBoard,this.me, bestMove);
             //System.out.println("Value of this state: " + stateHeuristic(cloneBoard, this.me, this.notMe));
             if (bd2.winner != null)
@@ -90,8 +108,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
     private BoardAnalysis boardAnalyser(Color[][] board){
         // Checks for end of game and returns legalmoves if not ended
-        int[] whiteRuns = new int[96];
-        int[] blackRuns = new int[96];
         int longestWhiteRun = 0;
         int longestBlackRun = 0;
         String boardID = "";
@@ -99,8 +115,8 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         BoardAnalysis bd;
 
         // Looping through each position is expensive so try to do only once
-        for (int col = 0; col < 8; col++ ) {
-            for (int row = 0; row < 8; row++) {
+        for (int row = 0; row < 8; row++ ) {
+            for (int col = 0; col < 8; col++) {
                 Color token = board[row][col];
                 // For each square
                 int squareID = row * 8 + col;
@@ -119,23 +135,72 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
 
         if (this.analysedBoards.containsKey(boardID)){
             //System.out.println("Loading: " + boardID);
-            return analysedBoards.get(boardID);
+            return this.analysedBoards.get(boardID);
         }
 
         //System.out.println("*** DEBUG *** ");
         longestWhiteRun = getMaxRunForBoard(board, Color.white);
         if (longestWhiteRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.white, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun, boardID);
+            bd = new BoardAnalysis(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
         longestBlackRun = getMaxRunForBoard(board, Color.black);
         if (longestBlackRun >= 5) {
-            bd = new BoardAnalysis(legalMoves, Color.black, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun, boardID);
+            bd = new BoardAnalysis(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
-        bd = new BoardAnalysis(legalMoves, null, whiteRuns, blackRuns, longestWhiteRun, longestBlackRun, boardID);
+        bd = new BoardAnalysis(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
+        this.analysedBoards.put(boardID,bd);
+        return bd;
+    }
+
+    private BoardAnalysis fasterBoardAnalyser(String prevBoardID, Move move, Color moveColor){
+        // Checks for end of game and returns legalmoves if not ended
+        int longestWhiteRun = 0;
+        int longestBlackRun = 0;
+        String boardID = "";
+        List<Move> legalMoves;
+        BoardAnalysis bd;
+        BoardAnalysis prevbd = this.analysedBoards.get(prevBoardID);
+        Color[][] board;
+
+        // Looping through each position is expensive so try to do only once
+        int moveID = move.row*8 + move.col;
+        char changeID = (moveColor == Color.white) ? 'w' : 'b';
+
+        boardID = prevBoardID.substring(0,moveID) + changeID + prevBoardID.substring(moveID + 1);
+        if (this.analysedBoards.containsKey(boardID)){
+            return this.analysedBoards.get(boardID);
+        }
+
+        //Update board
+        board = deepCloneBoard(prevbd.board);
+        board[move.row][move.col] = moveColor;
+
+        // update runs
+        if (moveColor == Color.white) {
+            longestWhiteRun = Math.max(getMaxRunForPosition(board, moveColor, move), prevbd.longestWhiteRun);
+        } else {
+            longestBlackRun = Math.max(getMaxRunForPosition(board, moveColor, move), prevbd.longestBlackRun);
+        }
+        // Update legalmoves
+        legalMoves = new ArrayList<>(prevbd.legalMoves);
+        legalMoves.remove(move);
+
+        //System.out.println("*** DEBUG *** ");
+        if (longestWhiteRun >= 5) {
+            bd = new BoardAnalysis(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
+            this.analysedBoards.put(boardID,bd);
+            return bd;
+        }
+        if (longestBlackRun >= 5) {
+            bd = new BoardAnalysis(legalMoves, Color.black, longestWhiteRun, longestBlackRun, boardID, board);
+            this.analysedBoards.put(boardID,bd);
+            return bd;
+        }
+        bd = new BoardAnalysis(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
         this.analysedBoards.put(boardID,bd);
         return bd;
     }
@@ -203,7 +268,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         int startingCol = Math.max(0,-yintercept);
         int row;
 
-        for (int col = startingCol; col < 8 && col + yintercept < 8; col++ ){
+        for (int col = startingCol; col < 8 && (col + yintercept) < 8; col++ ){
             row = col + yintercept;
             movSeq.add( new Move(row,col));
         }
@@ -222,7 +287,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         }
         int row;
 
-        for (int col = startingCol; col < 8 && -col + yintercept >= 0; col++ ){
+        for (int col = startingCol; col < 8 && (-col + yintercept) >= 0 ; col++ ){
             row = -col + yintercept;
             movSeq.add( new Move(row,col));
         }
@@ -299,9 +364,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
             //System.out.println("***Trying different top level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
-            Color[][] cloneBoard = deepCloneBoard(board);
-            cloneBoard[legalMove.row][legalMove.col] = me;
-            float minVal = minABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
+            float minVal = minABValue(bd.boardID, legalMove, me, minColor, -2, 2, this.maxDepth);
             //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
@@ -312,9 +375,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return  bestMove;
     }
 
-    private float maxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
+    private float maxABValue(String boardID, Move lastMove, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = -2;
-        BoardAnalysis bd = boardAnalyser(board);
+        BoardAnalysis bd = fasterBoardAnalyser(boardID,lastMove,minColor);
         if (bd.winner != null) {
             //System.out.println("Got to a max win");
             return value;
@@ -322,16 +385,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to maxdepth");
-            return stateHeuristic(board, maxColor, maxColor);
+            return stateHeuristic(bd.board, maxColor, maxColor);
         }
-        bd.legalMoves = reorderMovesByHeuristic(board, maxColor , bd.legalMoves);
+        bd.legalMoves = reorderMovesByHeuristic(bd.board, maxColor , bd.legalMoves);
         List<Integer> values = new ArrayList<Integer>();;
         for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
             //System.out.println("Trying different max level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
-            Color[][] cloneBoard = deepCloneBoard(board);
-            cloneBoard[legalMove.row][legalMove.col] = maxColor;
-            value = Math.max(value,minABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
+            value = Math.max(value,minABValue(bd.boardID, legalMove, maxColor, minColor, alpha, beta, depthRemaining));
             if (value >= beta){
                 //System.out.println("val>beta");
                 return value;
@@ -343,9 +404,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     }
 
 
-    private float minABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
+    private float minABValue(String boardID, Move lastMove, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
-        BoardAnalysis bd = boardAnalyser(board);
+        BoardAnalysis bd = fasterBoardAnalyser(boardID,lastMove,maxColor);
         if (bd.winner != null) {
             //System.out.println("Got to a min win");
             return value; // stand in for infinity
@@ -353,16 +414,14 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         --depthRemaining;
         if (depthRemaining < 1){
             //System.out.println("Got to max depth");
-            return stateHeuristic(board, maxColor, minColor);
+            return stateHeuristic(bd.board, maxColor, minColor);
         }
-        bd.legalMoves = reorderMovesByHeuristic(board, minColor , bd.legalMoves);
+        bd.legalMoves = reorderMovesByHeuristic(bd.board, minColor , bd.legalMoves);
         List<Integer> values = new ArrayList<Integer>();;
         for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
             //System.out.println("Trying different min level action: " + i);
             Move legalMove = bd.legalMoves.get(i);
-            Color[][] cloneBoard = deepCloneBoard(board);
-            cloneBoard[legalMove.row][legalMove.col] = minColor;
-            value = Math.min(beta,maxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
+            value = Math.min(beta,maxABValue(bd.boardID, legalMove, maxColor, minColor, alpha, beta, depthRemaining));
             if (value <= alpha){
                 //System.out.println("val<alpha");
                 return value;
