@@ -10,7 +10,13 @@ import java.util.*;
  **/
 
 // TODO: Need to have the agent stop the search befroe running out of time
-    // Do i need to do a reordering if the agent is searching all possible moves?
+    // Do i need to do a reordering if the agent is searching all possible moves? Or do i need to reduce the branching factor?
+    // Need to search deeper, so need to refactor the code for performance
+        // Need to check that the win checker is only doing the required run checks
+        // Need to check whether it's easier to do a win check by purely checking if a given move wins rather than a given board
+            // i.e use the move heuristic rather than the state heuristic, which may make things a lot faster.
+    // Agent doesn't seem to be blocking diagonal moves when i played against it
+        // Might be because it wouldn't have played a diagonal move or might be a wider issue - need to check it's only diagonals
     // May want a heuristic based on monte carlo runs - random players were quite fast
     // Not sure that the state heuristic added anything
 
