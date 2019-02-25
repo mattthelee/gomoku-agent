@@ -301,7 +301,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = me;
-            float minVal = DEBUGminABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
+            float minVal = minABValue(cloneBoard, me, minColor, -2, 2, this.maxDepth);
             //System.out.println("***Best opposition move value " + minVal + " against: " + legalMove.row + ":" + legalMove.col);
             if ( minVal > bestVal){
                 bestVal = minVal;
@@ -342,72 +342,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
-    private float DEBUGmaxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
-        float value = -2;
-        if (beta <= -2) {
-            System.out.println("beta at min don't need to do this");
-        }
-        BoardAnalysis bd = boardAnalyser(board);
-
-        if (bd.winner != null) {
-            System.out.println("Got to a min player win scenario");
-            return value;
-        }
-        --depthRemaining;
-        if (depthRemaining < 1){
-            return stateHeuristic(board, maxColor, maxColor);
-        }
-        bd.legalMoves = reorderMovesByHeuristic(board, maxColor , bd.legalMoves);
-        List<Integer> values = new ArrayList<Integer>();;
-        for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
-            //System.out.println("Trying different max level action: " + i);
-            Move legalMove = bd.legalMoves.get(i);
-            Color[][] cloneBoard = deepCloneBoard(board);
-            cloneBoard[legalMove.row][legalMove.col] = maxColor;
-            value = Math.max(value,DEBUGminABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
-            if (value >= beta){
-                System.out.println("val>beta");
-                return value;
-            }
-            alpha = Math.max(alpha,value);
-        }
-        //System.out.println("Max best val");
-        return value;
-    }
-
-
-    private float DEBUGminABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
-        float value = 2;
-        if (alpha >= 2) {
-            System.out.println("alpha at max don't need to do this");
-        }
-        BoardAnalysis bd = boardAnalyser(board);
-        if (bd.winner != null) {
-            //System.out.println("Got to a min win");
-            return value; // stand in for infinity
-        }
-        --depthRemaining;
-        if (depthRemaining < 1){
-            //System.out.println("Got to max depth");
-            return stateHeuristic(board, maxColor, minColor);
-        }
-        bd.legalMoves = reorderMovesByHeuristic(board, minColor , bd.legalMoves);
-        List<Integer> values = new ArrayList<Integer>();;
-        for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
-            Move legalMove = bd.legalMoves.get(i);
-            Color[][] cloneBoard = deepCloneBoard(board);
-            cloneBoard[legalMove.row][legalMove.col] = minColor;
-            float ab = DEBUGmaxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
-            value = Math.min(beta,ab);
-            if (value <= alpha){
-                System.out.println("val<alpha");
-                return value;
-            }
-            beta = Math.min(beta,value);
-        }
-        //xSystem.out.println("Min best val");
-        return value;
-    }
 
     private float minABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
