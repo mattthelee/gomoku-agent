@@ -339,6 +339,36 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
+    private float DEBUGmaxABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
+        float value = -2;
+        BoardAnalysis bd = boardAnalyser(board);
+        if (bd.winner != null) {
+            System.out.println("Got to a min player win scenario");
+            return value;
+        }
+        --depthRemaining;
+        if (depthRemaining < 1){
+            System.out.println("Got to maxdepth in maxABVALUE");
+            return stateHeuristic(board, maxColor, maxColor);
+        }
+        bd.legalMoves = reorderMovesByHeuristic(board, maxColor , bd.legalMoves);
+        List<Integer> values = new ArrayList<Integer>();;
+        for (int i = 0; i < bd.legalMoves.size() && i < this.maxBranching; i++){
+            //System.out.println("Trying different max level action: " + i);
+            Move legalMove = bd.legalMoves.get(i);
+            Color[][] cloneBoard = deepCloneBoard(board);
+            cloneBoard[legalMove.row][legalMove.col] = maxColor;
+            value = Math.max(value,minABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining));
+            if (value >= beta){
+                //System.out.println("val>beta");
+                return value;
+            }
+            alpha = Math.max(alpha,value);
+        }
+        //System.out.println("Max best val");
+        return value;
+    }
+
 
     private float DEBUGminABValue(Color[][] board, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         float value = 2;
@@ -358,7 +388,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             Move legalMove = bd.legalMoves.get(i);
             Color[][] cloneBoard = deepCloneBoard(board);
             cloneBoard[legalMove.row][legalMove.col] = minColor;
-            float ab = maxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
+            float ab = DEBUGmaxABValue(cloneBoard, maxColor, minColor, alpha, beta, depthRemaining);
             value = Math.min(beta,ab);
             System.out.println("Trying different min level action: " + legalMove.row + ":" + legalMove.col + " with val: " + ab);
             if (value <= alpha){
