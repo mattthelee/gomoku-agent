@@ -68,6 +68,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             // If I don't have a best move so far then take a random legal move
             BoardAnalysis180789269 bd = boardAnalyser(board);
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
+            bd.legalMoves = trimLegalMoves(bd.legalMoves);
             System.out.println("Number of Legal moves: " + bd.legalMoves.size());
             System.out.println("Whiteruns " + bd.longestWhiteRun);
 
@@ -142,9 +143,18 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return bd;
     }
 
-    private   List<Move> trimLegalMoves(List<Move> legalMoves, int moveCounter){
-        // Removes moves that are not
-        return legalMoves;
+    private List<Move> trimLegalMoves(List<Move> legalMoves){
+        // Removes moves that are not relevant, asummes they've already been sorted
+        List<Move> trimmedMoves;
+        // remove moves that irrelevent in the early game
+        if (legalMoves.size() >= 61) {
+            trimmedMoves = legalMoves.subList(0, 30);
+        } else if (legalMoves.size() >= 50) {
+            trimmedMoves = legalMoves.subList(0, 10);
+        } else {
+            trimmedMoves = legalMoves;
+        }
+        return trimmedMoves;
     }
 
 
