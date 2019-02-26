@@ -1,29 +1,9 @@
 import java.awt.Color;
 import java.util.*;
 
-
-/** The random gomoku player chooses random squares on the board (using a
- *  uniform distribution) until an unoccupied square is found, which is then
- *  returned as the player's move. It is assumed that the board is not full,
- *  otherwise chooseMove() will get stuck in an infinite loop.
- *	Author: Simon Dixon
- **/
-
-// TODO: Need to have the agent stop the search befroe running out of time
-    // Do i need to do a reordering if the agent is searching all possible moves? Or do i need to reduce the branching factor? - reducing branching factor was bad but could stil be something i can do here.
-    // Need to search deeper, so need to refactor the code for performance
-        // Need to check that the win checker is only doing the required run checks
-        // Need to check whether it's easier to do a win check by purely checking if a given move wins rather than a given board
-            // i.e use the move heuristic rather than the state heuristic, which may make things a lot faster.
-    // Not sure that the state heuristic added anything
-    // Do an undo on the board rather than doing a clone - set a
-    // Simpler ordering heuristic based on whether the move is next to other pieces or not?
-    // Can i eliminate moves that are not within two of existing positions?
-
-    //Done
-    // Need To implement alpha-beta pruning - done
-
 class MiniMaxPlayer180789269 extends GomokuPlayer {
+    // An Alpha-Beta Pruning minimax agent to play the game of gomoku.
+    // Relies on storing information about visited states to allow for deeper search
     int maxBranching = 64;
     int maxDepth = 5;
     int moveCounter = -1;
@@ -32,9 +12,9 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     HashMap<String,BoardAnalysis180789269> analysedBoards = new HashMap<String,BoardAnalysis180789269>();
     List<Move> consideredMoves;
     long startTime;
-
-
+    
     class BoardAnalysis180789269 {
+        // Board analysis class provides key information on a given board
         List<Move> legalMoves;
         Color winner;
         int[] whiteRuns;
@@ -47,6 +27,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         Color[][] board;
 
         BoardAnalysis180789269 (List<Move> legalMoves, Color winner,int longestWhiteRun, int longestBlackRun, String boardID, Color[][] board){
+            // Constructor
             this.legalMoves = legalMoves;
             this.winner = winner;
             this.longestWhiteRun = longestWhiteRun;
@@ -57,32 +38,27 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     }
 
     public Move chooseMove(Color[][] board, Color me) {
+        // Chooses move based on result of Alpha-Beta pruned minimax search
         Move bestMove = new Move(1, 1);
         try {
             this.startTime = System.currentTimeMillis();
-            //System.out.println("pre minimax " + board[bestMove.row][bestMove.col]);
             this.me = me;
             this.notMe = (me == Color.white) ? Color.black : Color.white;
             ++this.moveCounter;
-            // If I don't have a best move so far then take a random legal move
+
             BoardAnalysis180789269 bd = boardAnalyser(board);
-
             bd.legalMoves = reorderMovesByHeuristic(board, this.me , bd.legalMoves);
-            //bd.legalMoves = trimLegalMoves(bd.legalMoves);
-            System.out.println("Number of Legal moves: " + bd.legalMoves.size());
-            System.out.println("Whiteruns " + bd.longestWhiteRun);
 
-            //hardcoded first moves
+            //hardcoded first moves, found to be best in experimentation
             if ( board[4][4] == null){
                 return new Move(4,4);
             } else if ( board[3][4] == null){
                 return new Move(3,4);
             }
 
-            //while (System.currentTimeMillis() < startTime + 9800) { }
+            // Perform alpha-beta pruned minimax search
             bestMove = alphaBetaSearch(board,this.me, bd);
-            System.out.println("Time taken in millis: " + (System.currentTimeMillis() - this.startTime));
-
+            System.out.println("Time taken by MiniMaxPlayer180789269 in millis: " + (System.currentTimeMillis() - this.startTime));
             return bestMove;
 
         } catch (Exception e) {
@@ -109,7 +85,7 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
                 int squareID = row * 8 + col;
                 if (token == null) {
                     // For every empty square
-                    // only add moves that are within 2 of existing pieces
+                    // We find both the legalmoves and create the boardID to avoid looping more thna once
                     legalMoves.add(new Move(row, col));
                     boardID = boardID + "0";
                     continue;
@@ -121,11 +97,12 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             }
         }
 
+        // If this board has already been analysed then load the analysis object
         if (this.analysedBoards.containsKey(boardID)){
-            //System.out.println("Loading: " + boardID);
             return this.analysedBoards.get(boardID);
         }
 
+        // Get the longest runs for each colour anc check for a winner
         longestWhiteRun = getMaxRunForBoard(board, Color.white);
         if (longestWhiteRun >= 5) {
             bd = new BoardAnalysis180789269(legalMoves, Color.white, longestWhiteRun, longestBlackRun, boardID, board);
@@ -138,26 +115,12 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
             this.analysedBoards.put(boardID,bd);
             return bd;
         }
+
+        // If no winner, return null for winner with all other analysis information
         bd = new BoardAnalysis180789269(legalMoves, null, longestWhiteRun, longestBlackRun, boardID, board);
         this.analysedBoards.put(boardID,bd);
         return bd;
     }
-
-    private List<Move> trimLegalMoves(List<Move> legalMoves){
-        // Removes moves that are not relevant, asummes they've already been sorted
-        // DEPRECATED as ignoring potentially strong moves was not worth the performance increase
-        List<Move> trimmedMoves;
-        // remove moves that irrelevent in the early game
-        if (legalMoves.size() >= 61) {
-            trimmedMoves = legalMoves.subList(0, 45);
-        } else if (legalMoves.size() >= 40) {
-            trimmedMoves = legalMoves.subList(0, 40);
-        } else {
-            trimmedMoves = legalMoves;
-        }
-        return trimmedMoves;
-    }
-
 
     private BoardAnalysis180789269 fasterBoardAnalyser(String prevBoardID, Move move, Color moveColor){
         // Performs same as boardanalyser but uses information from previous board state to make it faster
@@ -340,71 +303,10 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return boardID;
     }
 
-        private float stateHeuristic(Color[][] board, Color player, Color nextMove){
-        // Returns a measure of the value of a board state to the player
-        // DEPRECATED as too slow
-        BoardAnalysis180789269 bd = boardAnalyser(board);
-        // If the player has won in this scenario then we want it to have the largest value
-        if (bd.winner == player){
-            return 2;
-        }
-        if (bd.winner != null){
-            return -2;
-        }
-        // Gives advantage to those that are playing next
-        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
-        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
-        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
-        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
-
-        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
-        bd.valueToWhite = value;
-        bd.valueToBlack = -value;
-        this.analysedBoards.put(bd.boardID,bd);
-
-        if (player == Color.black){
-            value = -value;
-        }
-        //System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
-        //System.out.println("Value: " + value + " board: " + Arrays.toString(board) + me);
-        // TODO this is essentially getting us to ignore the value of the state
-        return value;
-    }
-
-    private float fastStateHeuristic(Color[][] board, Color player, Color nextMove, Move move){
-        // Returns a measure of the value of a board state to the player
-        // DEPRECATED as too slow
-
-        BoardAnalysis180789269 bd = fasterBoardAnalyser(getBoardID(board), move, player );
-        // If the player has won in this scenario then we want it to have the largest value
-        if (bd.winner == player){
-            return 2;
-        }
-        if (bd.winner != null){
-            return -2;
-        }
-        // Gives advantage to those that are playing next
-        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
-        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
-        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
-        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
-
-        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
-        bd.valueToWhite = value;
-        bd.valueToBlack = -value;
-        this.analysedBoards.put(bd.boardID,bd);
-
-        if (player == Color.black){
-            value = -value;
-        }
-        return value;
-    }
-
     private float moveHeuristic(Color[][] board, Move move, Color player){
-
+        // returns a state value between -1 and 1. -1
         Color nextPLayer = (player == Color.white) ? Color.black : Color.white;
 
-        // returns a state value between -1 and 1. -1 indicates i lose
         //float value = fastStateHeuristic(board, player, nextPLayer, move);
         float value = getMaxRunForPosition(board,player, move)/10;
         return value;
@@ -417,9 +319,11 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
     }
 
     class CompareMoves180789269 implements Comparator<Move>{
+        // Class to allow sorting of moves
         Color[][] board;
         Color me;
         CompareMoves180789269(Color[][] board, Color me){
+            // Constructor
             this.board = board;
             this.me = me;
         }
@@ -488,7 +392,6 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return value;
     }
 
-
     private float minABValue(String boardID, Move lastMove, Color maxColor, Color minColor, float alpha, float beta, int depthRemaining){
         // Gets best case score for the minplayer with alpha beta pruning
         float value = 2;
@@ -523,3 +426,79 @@ class MiniMaxPlayer180789269 extends GomokuPlayer {
         return cloneBoard;
     }
 }
+
+    private float fastStateHeuristic(Color[][] board, Color player, Color nextMove, Move move){
+        // Returns a measure of the value of a board state to the player, uses fastboardAnalyser
+        // DEPRECATED as too slow
+
+        BoardAnalysis180789269 bd = fasterBoardAnalyser(getBoardID(board), move, player );
+        // If the player has won in this scenario then we want it to have the largest value
+        if (bd.winner == player){
+            return 2;
+        }
+        if (bd.winner != null){
+            return -2;
+        }
+        // Gives advantage to those that are playing next
+        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
+        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
+        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
+        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
+
+        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
+        bd.valueToWhite = value;
+        bd.valueToBlack = -value;
+        this.analysedBoards.put(bd.boardID,bd);
+
+        if (player == Color.black){
+            value = -value;
+        }
+        return value;
+    }
+
+    private float stateHeuristic(Color[][] board, Color player, Color nextMove){
+        // Returns a measure of the value of a board state to the player
+        // DEPRECATED as too slow
+        BoardAnalysis180789269 bd = boardAnalyser(board);
+        // If the player has won in this scenario then we want it to have the largest value
+        if (bd.winner == player){
+            return 2;
+        }
+        if (bd.winner != null){
+            return -2;
+        }
+        // Gives advantage to those that are playing next
+        double initiative = (nextMove == Color.white) ? 0.5 : -0.5;
+        // Want a run of 5 to be extemely valuable and a run of 4 to be greatly more valuable than a 3
+        double whiteScore = 1/(6.01-(bd.longestWhiteRun + initiative));
+        double blackScore = 1/(6.01-(bd.longestBlackRun - initiative));
+
+        float value = (float) (whiteScore - blackScore) / (float) (whiteScore + blackScore);
+        bd.valueToWhite = value;
+        bd.valueToBlack = -value;
+        this.analysedBoards.put(bd.boardID,bd);
+
+        if (player == Color.black){
+            value = -value;
+        }
+        //System.out.println("Value: " + value + " whitescore: " + whiteScore + " blackscore: " + blackScore);
+        //System.out.println("Value: " + value + " board: " + Arrays.toString(board) + me);
+        // TODO this is essentially getting us to ignore the value of the state
+        return value;
+    }
+
+    private List<Move> trimLegalMoves(List<Move> legalMoves){
+        // Removes moves that are not relevant, asummes they've already been sorted
+        // DEPRECATED as ignoring potentially strong moves was not worth the performance increase
+        List<Move> trimmedMoves;
+        // remove moves that irrelevent in the early game
+        if (legalMoves.size() >= 61) {
+            trimmedMoves = legalMoves.subList(0, 45);
+        } else if (legalMoves.size() >= 40) {
+            trimmedMoves = legalMoves.subList(0, 40);
+        } else {
+            trimmedMoves = legalMoves;
+        }
+        return trimmedMoves;
+    }
+
